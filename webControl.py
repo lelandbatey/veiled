@@ -9,32 +9,25 @@ from time import sleep
 
 app = Flask(__name__)
 
-# infiniScript = pexpect.spawn('./perpetualScript.sh')
-
-
-# def enqueue_output(out, queue):
-#     for line in iter(out.readline, b''):
-#         queue.put(line)
-#         #print line+"newLine"
-#     out.close()
-
-
-
-# q = Queue()
-# t = Thread(target=enqueue_output, args=(infiniScript, q))
-# t.daemon = True ## the thread dies with the program
-# t.start()
-
 
 class procControl():
-    """docstring for procControl"""
-    def __init__(self, scriptName):
+    """ Wrapper for pexpect, providing useful methods for controlling terminal applications """
+    def __init__(self, scriptName, procType = ""):
         #super(procControl, self).__init__() # <-- I don't quite get this :/
         self.scriptName = scriptName
         self.isRunning = False
         
     def start(self):
         """Starts up the script as a pexpect object, then creating a thread to perpetualy read the output of the process running in pexpect and enqueueing it into our queue of output (self.outQueue). """
+
+        self.cmdOut = ""
+
+
+        # Checking the script location, and handling appropriately:
+            # This is assuming that the script name contains no other path info. If it doesn't have a path, then it's run from the current working directory, the same one that webControl.py is running from.
+        if "/" not in self.scriptName:
+            self.scriptName = "./"+self.scriptName
+
 
         self.process = pexpect.spawn("./"+self.scriptName)
         self.process.logfile = file("logOut.log",'w')
@@ -49,7 +42,6 @@ class procControl():
         
         self.isRunning = True # Nice little flag to keep track of whether the program is running or not.
 
-
 # Alright, this below little snippet of code is actually PURE GENIUS. Full disclosure, I did in no way write it.
 #   Here's how it works:
 #       It gives out.readline to iter and asks for it to create an iterable.
@@ -62,29 +54,7 @@ class procControl():
             queue.put(line)
             #print "somethingNew "+line
         out.close()
-        #except:
-        #    print "!!!broken !!!"
-
-        # pauseFlag = False
         
-        # # Check the pauseQueue for any message that says to pause. This avoids trying to read at the same time we're trying to send a command (which breaks HORRIBLY) 
-        # try:
-        #     if self.pauseQueue.get_nowait():
-        #         pauseFlag = True
-        #     else:
-        #         pauseFlag = False
-        # except Empty:
-        #     pass
-        # try:
-        #     if not pauseFlag:
-        #         for line in iter(out.readline, b''):
-        #             queue.put(line)
-        #             #print line+"newLine"
-        #         out.close()
-        #     elif pauseFlag:
-        #         time.sleep(1)
-        # except:
-        #     pass
 
     def getOut(self):
     # GetConsoleOut:
@@ -97,7 +67,12 @@ class procControl():
             except Empty:
                 break
             toReturn += line
+        self.cmdOut += toReturn
         return toReturn
+
+    def totalConsoleOut(self):
+        """ Returns all the output of the console since the start() method was called, but does not include the latests output of the console that has not been called via getOut() """
+        return self.cmdOut
 
     def sendCommand(self, command):
         """ Sends the given string to the running process as if it was typed into the keyboard """
