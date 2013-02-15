@@ -142,6 +142,10 @@ def apiCmd():
     #print request.form
     return toReturn#str(request.form)
 
+@app.route("/console")
+def console(): # Serves the console html page
+    return render_template('testPollPage.html')
+
 
 if __name__ == '__main__':
     app.debug = True
