@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<body>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+<textarea id="myTextArea" rows="10" cols="30">
+</textarea>
+
+<script type="text/javascript">
+xmlhttp= new XMLHttpRequest();
+
+xmlhttp.onreadystatechange=function(){
+
+        if (xmlhttp.readyState==4 && xmlhttp.status==200){ // If the status is good
+            document.getElementById( "myTextArea" ).innerHTML = xmlhttp.responseText; // Then set the inside of the text area to the response data
+        }
+        console.log(xmlhttp.responseText);
+        console.log(xmlhttp);
+    }
+
+xmlhttp.open("GET","http://nacr.us/",true); // You can't make a call to a domain outside of what 
+xmlhttp.send();
+ 
+</script>
+
+</body>
+</html>
