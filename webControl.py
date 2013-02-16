@@ -22,6 +22,10 @@ class procControl():
 
         self.cmdOut = ""
 
+        # If we where passed an absoloute path to the file to run, then we set up self.cwd to be the directory which the script is inside.
+        if "/" in self.scriptName:
+            self.cwd = self.scriptName.split("/")[:-1]
+            self.cwd = "/".join(self.cwd)
 
         # Checking the script location, and handling appropriately:
             # This is assuming that the script name contains no other path info. If it doesn't have a path, then it's run from the current working directory, the same one that webControl.py is running from.
@@ -31,6 +35,8 @@ class procControl():
 
         self.process = pexpect.spawn("./"+self.scriptName)
         self.process.logfile = file("logOut.log",'w')
+
+        self.process.cwd = self.cwd
         self.process.timeout = 10000000 # This means that trying to read() from pexpect.spawn will block forever (technically ten million seconds, which is about 115 days or till there is more input). However, since we are using a separate thread that can afford to block forever, we don't care. In fact, we want it to block forever!
 
         self.pauseQueue = Queue() # Used to tell the enqueue thread to pause for 0.5 seconds
@@ -44,7 +50,7 @@ class procControl():
 
 # Alright, this below little snippet of code is actually PURE GENIUS. Full disclosure, I did in no way write it.
 #   Here's how it works:
-#       It gives out.readline to iter and asks for it to create an iterable.
+#       It gives out.readline to iter() and asks for it to create an iterable.
 #       Iter works by calling "out.readline" with no arguments. If what is returned is equal to the sentinal value, then it AUTOMATICALLY EXITS THE FOR LOOP AND CLOSES THE FILE, **silently!**
 #       
 #       What's so cool about this is that it lets us spin off a thread that can read this file at whatever speed it wants, and it just silently handles adding new stuff to the queue. If there is nothing in the file to read, it handles that gracefully as well. It's just a wonderfully designed, silent little perpetual reader!
@@ -86,7 +92,17 @@ class procControl():
         self.process.close(True) # Calls close() with force set to true
         self.isRunning = False
 
+class controlBoard(object):
+    """ Meta-class for controlling multiple procControl objects"""
+    def __init__(self, arg):
+        #super controlBoard, self).__init__() # <- I just don't know what that's for :/
+        self.processGroup = {}
 
+    def initController(procesName, scriptName):
+
+        # Adds new dictionary entry with
+        self.processGroup[procesName] = procControl(scriptName)
+        
 remoteBeta = procControl("run_tf2_comp_exitance.sh")
 #remoteBeta.start()
 
