@@ -4,8 +4,8 @@ import json
 
 # Really simple testing script of webControl.py
 
-url = 'http://adrenl.in:5000/cmd/'
-values = json.dumps({"cmd" : "changelevel ctf_2fort"})
+url = 'http://localhost:5000/status/'
+values = json.dumps({"whatever" : "you want"})
 
 #data = urllib.urlencode(values)
 data = values

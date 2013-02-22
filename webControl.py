@@ -278,7 +278,7 @@ def start():
 
     return toReturn
 
-@app.route('/status')
+@app.route('/status', methods = ['POST'])
 def status():
     
     toReturn = genericRequestHandler(request,"status")
