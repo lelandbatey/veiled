@@ -136,7 +136,7 @@ class controlBoard():
 
     def processOperator(self, processName, operation, command=""):
         """ Main method wrapper for procControl """
-        if porcessName in self.processGroup.keys():
+        if processName in self.processGroup.keys():
             refProcess = self.processGroup[processName]
         else:
             return False
@@ -197,6 +197,30 @@ remoteBeta = procControl("run_tf2_comp_exitance.sh")
 bigBoard = controlBoard()
 bigBoard.initController("testTf2Server", scriptPath)
 
+def genericRequestHandler(request,command):
+    toReturn=""
+    parsedContent = request.json
+
+    if request.headers['Content-Type'] == 'application/json':
+        if "name" in parsedContent.keys:
+            
+            processName = parsedContent["name"]
+            if processName in bigBoard.processGroup.keys():
+
+                if bigBoard.processOperator(processName,command) == True:
+                    toReturn = "command communicated successfully"
+                else:
+                    toReturn = "error in communicating command"
+
+            else: # if no process exists with the given name
+                toReturn = "no process exists with the given name"
+        else: # if there wasn't a "name" key
+            toReturn = "did not specify a value for \""+processName+"\" in arguments"
+    else: # If the content is not json
+        toReturn = "request must be a POST request formatted as JSON"
+
+    return toReturn
+
 
 @app.route('/')
 def hello_world():
@@ -204,26 +228,38 @@ def hello_world():
 
 @app.route('/kill/', methods = ['POST'])
 def kill():
+    # Handles killing the appropriate process.
     toReturn = ""
     parsedContent = request.json
 
-    if request.headers['Content-Type'] == 'application/json':
-        if "name" in parsedContent.keys:
+    return genericRequestHandler(request,"kill")
+
+    # if request.headers['Content-Type'] == 'application/json':
+    #     if "name" in parsedContent.keys:
             
-            processName = parsedContent["name"]
-            if parsedContent["name"] in bigBoard.processGroup:
+    #         processName = parsedContent["name"]
+    #         if processName in bigBoard.processGroup.keys():
                 
-                if bigBoard.processOperator(processName,"kill") == True:
-                    toReturn="process killed"
-                
+    #             bigBoard.processOperator(processName,"kill"):
+    #             toReturn="process killed"
+            
+    #         else: # if no process exists with the given name
+    #             toReturn = "no process exists with the given name"
+    #     else: # if there wasn't a "name" key
+    #         toReturn = "did not specify a value for \"name\" in arguments"
+    # else: # If the content is not json
+    #     toReturn = "request must be a POST request formatted as JSON"
+
+    # return toReturn
 
 
     remoteBeta.killConsole() # Calls close() with force set to true
     return "Killing script\n"
 
-@app.route('/read')
+@app.route('/read', methods = ['POST'])
 def read():
-    toReturn = remoteBeta.getOut()
+    #toReturn = remoteBeta.getOut()
+    toReturn = genericRequestHandler(request,getOutput)
     return toReturn    
 
 @app.route('/start')
