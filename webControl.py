@@ -141,19 +141,19 @@ class controlBoard():
         else:
             return False
 
-        if operation = "kill":
+        if operation == "kill":
             refProcess.killConsole()
 
-        elif operation = "start":
+        elif operation == "start":
             refProcess.start()
 
-        elif operation = "sendcmd":
+        elif operation == "sendcmd":
             refProcess.sendCommand(command)
 
-        elif operation = "getOutput":
+        elif operation == "getOutput":
             refProcess.getOut()
 
-        elif operation = "updateOutput":
+        elif operation == "updateOutput":
             refProcess.totalConsoleOut()
         else:
             return False
