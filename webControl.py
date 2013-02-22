@@ -166,7 +166,7 @@ class controlBoard():
             refProcess.totalConsoleOut()
             
         elif operation == "status":
-            toReturn = self.getProcessInfo("processName")
+            toReturn = self.getProcessInfo(processName)
         else:
             toReturn = False
 

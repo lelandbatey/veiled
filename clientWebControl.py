@@ -5,7 +5,7 @@ import json
 # Really simple testing script of webControl.py
 
 url = 'http://localhost:5000/list'
-values = json.dumps({"whatever" : "you want"})
+values = json.dumps({"name" : "testTf2Server"})
 
 #data = urllib.urlencode(values)
 data = values
