@@ -182,7 +182,7 @@ class controlBoard():
 ### Reads Configuration File ###
     # Configuration file is just a json file. The "key" must be "scriptPath" with the value being a string that is the path to the script (either absolute or relative to the instance of webControl)
 
-configFile = open(config.json,'r')
+configFile = open('config.json','r')
 configJson = json.loads(configFile.read())
 
 scriptPath = configJson["scriptPath"]

@@ -10,6 +10,14 @@ RemoteControl exists so that you can have easy access to a terminal application 
 
 ## Docs ##
 
+### Requirements: ###
+Veiled requires these python modules
+
+    - Pexpect
+    - Flask 
+
+Each of these can be installed via "pip install <package name here>".
+
 ###Flask Server###
 
 To interact with RemoteControl, you use a very simple and basic REST-style interface. For example, to get the status of a processControl method, you'd use an http GET request directed at http://<your RemoteControl server address>/status . This would return the status of the app, such as whether it's running, it's location, and any important configuration details.
