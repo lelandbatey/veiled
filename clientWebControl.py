@@ -4,7 +4,7 @@ import json
 
 # Really simple testing script of webControl.py
 
-url = 'http://localhost:5000/status/'
+url = 'http://localhost:5000/list'
 values = json.dumps({"whatever" : "you want"})
 
 #data = urllib.urlencode(values)

@@ -119,6 +119,8 @@ class controlBoard():
     def listProcess(self):
         j = []
 
+        print self.processGroup.keys()
+
         for keys in self.processGroup.keys():
             j.append(keys)
 
@@ -212,7 +214,7 @@ def genericRequestHandler(request,command):
     parsedContent = request.json
 
     if request.headers['Content-Type'] == 'application/json':
-        if "name" in parsedContent.key()s:
+        if "name" in parsedContent.key():
             
             processName = parsedContent["name"]
             if processName in bigBoard.processGroup.keys():
@@ -284,7 +286,7 @@ def start():
     return toReturn
 
 @app.route('/list')
-def list():
+def listProcs():
     return bigBoard.listProcess()
 
 
