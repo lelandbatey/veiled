@@ -97,7 +97,7 @@ class procControl():
 
 class controlBoard():
     """ Meta-class for controlling multiple procControl objects"""
-    def __init__(self, arg):
+    def __init__(self):
         #super controlBoard, self).__init__() # <- I just don't know what that's for :/
         self.processGroup = {}
 
