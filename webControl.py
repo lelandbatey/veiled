@@ -117,7 +117,12 @@ class controlBoard():
 
         process.sendCommand(command)
     def listProcess(self):
-        return self.processGroup
+        j = []
+
+        for keys in self.processGroup.keys():
+            j.append(keys)
+
+        return j
 
     def getProcessInfo(self,processName):
 
@@ -207,7 +212,7 @@ def genericRequestHandler(request,command):
     parsedContent = request.json
 
     if request.headers['Content-Type'] == 'application/json':
-        if "name" in parsedContent.keys:
+        if "name" in parsedContent.key()s:
             
             processName = parsedContent["name"]
             if processName in bigBoard.processGroup.keys():
@@ -220,7 +225,7 @@ def genericRequestHandler(request,command):
             else: # if no process exists with the given name
                 toReturn = "no process exists with the given name"
         else: # if there wasn't a "name" key
-            toReturn = "did not specify a value for \""+processName+"\" in arguments"
+            toReturn = "did not specify a value for 'name' in arguments"
     else: # If the content is not json
         toReturn = "request must be a POST request formatted as JSON"
 
@@ -277,6 +282,11 @@ def start():
         toReturn = "Already running\n"
 
     return toReturn
+
+@app.route('/list')
+def list():
+    return bigBoard.listProcess()
+
 
 @app.route('/status', methods = ['POST'])
 def status():
