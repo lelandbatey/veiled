@@ -136,10 +136,12 @@ class controlBoard():
 
     def processOperator(self, processName, operation, command=""):
         """ Main method wrapper for procControl """
+        toReturn = True
+
         if processName in self.processGroup.keys():
             refProcess = self.processGroup[processName]
         else:
-            return False
+            toReturn = False
 
         if operation == "kill":
             refProcess.killConsole()
@@ -155,10 +157,13 @@ class controlBoard():
 
         elif operation == "updateOutput":
             refProcess.totalConsoleOut()
+            
+        elif operation == "status":
+            toReturn = self.getProcessInfo("processName")
         else:
-            return False
+            toReturn = False
 
-        return True
+        return toReturn
 
     # def processStart(self, processName):
 
@@ -206,10 +211,10 @@ def genericRequestHandler(request,command):
             
             processName = parsedContent["name"]
             if processName in bigBoard.processGroup.keys():
+                
+                toReturn = bigBoard.processOperator(processName,command)
 
-                if bigBoard.processOperator(processName,command) == True:
-                    toReturn = "command communicated successfully"
-                else:
+                if not toReturn:
                     toReturn = "error in communicating command"
 
             else: # if no process exists with the given name
@@ -259,7 +264,7 @@ def kill():
 @app.route('/read', methods = ['POST'])
 def read():
     #toReturn = remoteBeta.getOut()
-    toReturn = genericRequestHandler(request,getOutput)
+    toReturn = genericRequestHandler(request,"getOutput")
     return toReturn    
 
 @app.route('/start')
@@ -275,24 +280,28 @@ def start():
 
 @app.route('/status')
 def status():
-    toReturn = ''
-    if remoteBeta.isRunning == False:
-        toReturn = "Offline\n"
-    elif remoteBeta.isRunning == True:
-        toReturn = "Online\n"
-
+    
+    toReturn = genericRequestHandler(request,"status")
     return toReturn
+
+    # if remoteBeta.isRunning == False:
+    #     toReturn = "Offline\n"
+    # elif remoteBeta.isRunning == True:
+    #     toReturn = "Online\n"
+
+    # return toReturn
 
 @app.route('/cmd/', methods = ['POST'])
 def apiCmd():
 
     toReturn = ""
+
+
     if request.headers['Content-Type'] == 'application/json':
-        print "JSON Message: " + json.dumps(request.json)
-        toReturn = json.dumps(request.json)
-        parsedCmd = json.loads(toReturn)['cmd']
-        print parsedCmd# Prints the value cooresponding to the key "cmds"
-    
+        
+        parsedCmd = request.json['cmd']
+        if genericRequestHandler(request,"sendcmd",parsedCmd):
+            toReturn="command communicated successfully"
     else:
         toReturn = "Error, input not JSON."
     
