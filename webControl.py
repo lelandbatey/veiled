@@ -4,6 +4,7 @@ from Queue import Queue, Empty
 from threading import Thread
 from pprint import pprint
 from time import sleep
+import os
 
 #from remoteControl import termWrap
 
@@ -26,6 +27,8 @@ class procControl():
         if "/" in self.scriptName:
             self.cwd = self.scriptName.split("/")[:-1]
             self.cwd = "/".join(self.cwd)
+        else:
+            self.cwd = os.getcwd()
 
         # Checking the script location, and handling appropriately:
             # This is assuming that the script name contains no other path info. If it doesn't have a path, then it's run from the current working directory, the same one that webControl.py is running from.
@@ -92,26 +95,129 @@ class procControl():
         self.process.close(True) # Calls close() with force set to true
         self.isRunning = False
 
-class controlBoard(object):
+class controlBoard():
     """ Meta-class for controlling multiple procControl objects"""
     def __init__(self, arg):
         #super controlBoard, self).__init__() # <- I just don't know what that's for :/
         self.processGroup = {}
 
-    def initController(procesName, scriptName):
+    def initController(self, proccesName, scriptName):
 
         # Adds new dictionary entry with
-        self.processGroup[procesName] = procControl(scriptName)
+        self.processGroup[proccesName] = procControl(scriptName)
+
+    def sendProcessCommand(self, processName, command):
+        """ Given the name of a process, it sends a command to it. """
+         # processName and command are strings
+        try:
+            process = self.processGroup["processName"]
+        except KeyError:
+            print "Process doesn't exist!"
+            return
+
+        process.sendCommand(command)
+    def listProcess(self):
+        return self.processGroup
+
+    def getProcessInfo(self,processName):
+
+        infoDict = {}
+
+        if processName in self.processGroup.keys():
+            refProcess = processGroup[processName]
+            infoDict["name"] = processName
+            infoDict["cwd"] = refProcess.cwd
+            infoDict["scriptName"] = refProcess.scriptName
+            infoDict["running"] = refProcess.isRunning
+        else:
+            return
+
+        return infoDict
+
+    def processOperator(self, processName, operation, command=""):
+        """ Main method wrapper for procControl """
+        if porcessName in self.processGroup.keys():
+            refProcess = self.processGroup[processName]
+        else:
+            return False
+
+        if operation = "kill":
+            refProcess.killConsole()
+
+        elif operation = "start":
+            refProcess.start()
+
+        elif operation = "sendcmd":
+            refProcess.sendCommand(command)
+
+        elif operation = "getOutput":
+            refProcess.getOut()
+
+        elif operation = "updateOutput":
+            refProcess.totalConsoleOut()
+        else:
+            return False
+
+        return True
+
+    # def processStart(self, processName):
+
+    #     if processName in self.processGroup.keys():
+    #         refProcess = self.processGroup[processName]
+    #         refProcess.start()
+    #         return True
+    #     else:
+    #         return False
+
+    # def processKill(self, processName):
+
+    #     if processName in self.processGroup.keys():
+    #         refProcess = self.processGroup[processName]
+    #         refProcess.killConsole()
+    #         return True
+    #     else:
+    #         return False
+
+
+### Reads Configuration File ###
+    # Configuration file is just a json file. The "key" must be "scriptPath" with the value being a string that is the path to the script (either absolute or relative to the instance of webControl)
+
+configFile = open(config.json,'r')
+configJson = json.loads(configFile.read())
+
+scriptPath = configJson["scriptPath"]
+print scriptPath
+
+
         
 remoteBeta = procControl("run_tf2_comp_exitance.sh")
 #remoteBeta.start()
+
+
+bigBoard = controlBoard()
+bigBoard.initController("testTf2Server", scriptPath)
+
 
 @app.route('/')
 def hello_world():
     return 'Hello World!\n'
 
-@app.route('/kill')
+@app.route('/kill/', methods = ['POST'])
 def kill():
+    toReturn = ""
+    parsedContent = request.json
+
+    if request.headers['Content-Type'] == 'application/json':
+        if "name" in parsedContent.keys:
+            
+            processName = parsedContent["name"]
+            if parsedContent["name"] in bigBoard.processGroup:
+                
+                if bigBoard.processOperator(processName,"kill") == True:
+                    toReturn="process killed"
+                
+
+
     remoteBeta.killConsole() # Calls close() with force set to true
     return "Killing script\n"
 
