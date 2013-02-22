@@ -287,7 +287,7 @@ def start():
 
 @app.route('/list')
 def listProcs():
-    return bigBoard.listProcess()
+    return json.dumps(bigBoard.listProcess())
 
 
 @app.route('/status', methods = ['POST'])
