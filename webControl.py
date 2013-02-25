@@ -166,7 +166,7 @@ class controlBoard():
             refProcess.totalConsoleOut()
             
         elif operation == "status":
-            toReturn = self.getProcessInfo(processName)
+            toReturn = self.getProcessInfo(refProcess)
         else:
             toReturn = False
 
@@ -209,17 +209,20 @@ remoteBeta = procControl("run_tf2_comp_exitance.sh")
 bigBoard = controlBoard()
 bigBoard.initController("testTf2Server", scriptPath)
 
-def genericRequestHandler(request,command):
+def genericRequestHandler(request,operation):
     toReturn=""
     parsedContent = request.json
 
     if request.headers['Content-Type'] == 'application/json':
-        if "name" in parsedContent.key():
+        if "processName" in parsedContent.key():
             
-            processName = parsedContent["name"]
+            processName = parsedContent["processName"]
             if processName in bigBoard.processGroup.keys():
                 
-                toReturn = bigBoard.processOperator(processName,command)
+                if operation == "sendcmd": # if we are sending a command we need to figure out what that command is now and include it
+                    toReturn = bigBoard.processOperator(processName,operation,parsedContent["cmd"])
+                else: # For everything else, we don't include the cmd parameter.
+                    toReturn = bigBoard.processOperator(processName,operation)
 
                 if not toReturn:
                     toReturn = "error in communicating command"
@@ -236,7 +239,11 @@ def genericRequestHandler(request,command):
 
 @app.route('/')
 def hello_world():
-    return 'Hello World!\n'
+    toReturn = []
+    
+    for rules in app.url_map.iter_rules():
+        toReturn.append(rules)
+
 
 @app.route('/kill/', methods = ['POST'])
 def kill():
@@ -305,6 +312,9 @@ def status():
 
 @app.route('/cmd/', methods = ['POST'])
 def apiCmd():
+    # Requires:
+    # { "processName" : "theNameOfTheProcess",
+    #   "cmd" : "theCommandToBeSentToTheProcess" }
 
     toReturn = ""
 

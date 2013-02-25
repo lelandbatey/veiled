@@ -15,3 +15,13 @@ print req
 response = urllib2.urlopen(req)
 the_page = response.read()
 print the_page
+
+class veiledClient():
+    """docstring for veiledClient"""
+    def __init__(self, address):
+        #super(veiledClient, self).__init__() # Like I said, i do not get this at all :/
+        self.address = address
+        
+
+def main():
+    pass
