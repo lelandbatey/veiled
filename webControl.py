@@ -16,12 +16,6 @@ class procControl():
     def __init__(self, scriptName, procType = ""):
         #super(procControl, self).__init__() # <-- I don't quite get this :/
         self.scriptName = scriptName
-        self.isRunning = False
-        
-    def start(self):
-        """Starts up the script as a pexpect object, then creating a thread to perpetualy read the output of the process running in pexpect and enqueueing it into our queue of output (self.outQueue). """
-
-        self.cmdOut = ""
 
         # If we where passed an absoloute path to the file to run, then we set up self.cwd to be the directory which the script is inside.
         if "/" in self.scriptName:
@@ -36,7 +30,16 @@ class procControl():
             self.scriptName = "./"+self.scriptName
 
 
-        self.process = pexpect.spawn("./"+self.scriptName)
+        self.isRunning = False
+        
+    def start(self):
+        """Starts up the script as a pexpect object, then creating a thread to perpetualy read the output of the process running in pexpect and enqueueing it into our queue of output (self.outQueue). """
+
+        self.cmdOut = ""
+
+        
+
+        self.process = pexpect.spawn(self.scriptName)
         self.process.logfile = file("logOut.log",'w')
 
         self.process.cwd = self.cwd
@@ -134,14 +137,17 @@ class controlBoard():
 
         infoDict = {}
 
+        print processName
+        print self.processGroup.keys()
+
         if processName in self.processGroup.keys():
-            refProcess = processGroup[processName]
+            refProcess = self.processGroup[processName]
             infoDict["name"] = processName
             infoDict["cwd"] = refProcess.cwd
             infoDict["scriptName"] = refProcess.scriptName
             infoDict["running"] = refProcess.isRunning
         else:
-            return
+            return False
 
         return infoDict
 
@@ -151,7 +157,7 @@ class controlBoard():
 
         print "processName: " + processName
         print "operation  : " + operation
-        print "command    : " + operation
+        print "command    : " + command
 
         if processName in self.processGroup.keys():
             refProcess = self.processGroup[processName]
@@ -174,7 +180,7 @@ class controlBoard():
             refProcess.totalConsoleOut()
             
         elif operation == "status":
-            toReturn = self.getProcessInfo(refProcess)
+            toReturn = self.getProcessInfo(processName)
         else:
             toReturn = "no operation of that name"
 
@@ -198,6 +204,7 @@ remoteBeta = procControl("run_tf2_comp_exitance.sh")
 
 bigBoard = controlBoard()
 bigBoard.initController("testTf2Server", scriptPath)
+bigBoard.processOperator("testTf2Server","start")
 
 def genericRequestHandler(request,operation):
     toReturn=""
@@ -214,6 +221,7 @@ def genericRequestHandler(request,operation):
                 else: # For everything else, we don't include the cmd parameter.
                     toReturn = bigBoard.processOperator(processName,operation)
 
+                print toReturn
                 if not toReturn:
                     toReturn = "error in communicating command"
 
@@ -272,7 +280,7 @@ def listProcs():
 @app.route('/status', methods = ['POST'])
 def status():
     
-    toReturn = genericRequestHandler(request,"status")
+    toReturn = json.dumps(genericRequestHandler(request,"status"))
     return toReturn
 
 
