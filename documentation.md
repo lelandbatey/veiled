@@ -1,12 +1,12 @@
 
-RemoteControl Docs
-==================
+Veiled Docs
+===========
 
-Basic docs for the RemoteControl python package.
+Basic docs for the Veiled python package.
 
-#### What is the point of RemoteControl? ####
+#### What is the point of Veiled? ####
 
-RemoteControl exists so that you can have easy access to a terminal application (or group of terminal applications) from the web, as if you where using a terminal. However, the control and interaction API makes it easy to expand how you control your applications. The API is simple, so doing what you want is also simple.
+Veiled exists so that you can have easy access to a terminal application (or group of terminal applications) from the web, as if you where using a terminal. However, the control and interaction API makes it easy to expand how you control your applications. The API is simple, so doing what you want is also simple.
 
 ## Docs ##
 
@@ -18,11 +18,42 @@ Veiled requires these python modules
 
 Each of these can be installed via "pip install <package name here>".
 
+### Requests: ###
+
+Default Methods:
+    
+    {
+        "start" : "/start"
+        "list"  : "/list"
+        "status": "/status"
+        "cmd"   : "/cmd/"
+        "read"  : "/read"
+        "kill"  : "/kill"
+    }
+
+    Each of these requires a request made to that URI to be in POST form, and to include the processName. The only exceptions to this are "list" and "cmd". "list" does not require any data, and will simply return a json formated list of all the names of all the processes. "cmd", on the other hand, also requires the string that should be sent to the given command.
+    Examples:
+
+        "cmd"
+        {
+            "processName" : "name of the process you're accessing"
+            "cmd" : "the full text of the string you want to send"
+        }
+
+        "read"
+        {
+            "processName" : "the full name of the process you're accessing"
+        }
+
+
+
+# Notes #
+
 ###Flask Server###
 
-To interact with RemoteControl, you use a very simple and basic REST-style interface. For example, to get the status of a processControl method, you'd use an http GET request directed at http://<your RemoteControl server address>/status . This would return the status of the app, such as whether it's running, it's location, and any important configuration details.
+To interact with Veiled, you use a very simple and basic REST-style interface. For example, to get the status of a processControl method, you'd use an http GET request directed at http://<your veiled server address>/status . This would return the status of the app, such as whether it's running, it's location, and any important configuration details.
 
-Similarly, to send a command, you'd make an http POST request to http://<your RemoteControl server address>/cmd/ with the json data:
+Similarly, to send a command, you'd make an http POST request to http://<your veiled server address>/cmd/ with the json data:
     
     {"cmd" : "command to send"}
 
@@ -33,10 +64,9 @@ Templates for webpages need to go in the "templates" directory. Check out the do
 
 ###procControl Class###
 
-procControl is the heart of RemoteControl. procControl is for the most part just a wrapper around the pexpect package, allowing for simple input into the controlled program, as well as keeping track of the output in a convenient and reliable way.
+procControl is the heart of Veiled. procControl is for the most part just a wrapper around the pexpect package, allowing for simple input into the controlled program, as well as keeping track of the output in a convenient and reliable way.
 
 ##### Initialization #####
-
 
 
 When a new procControl class is created, it is passed a script name. We expect one of two things to happen with that script name:
@@ -51,4 +81,4 @@ In this case, it will be executed as "/home/someuser/scrips/scriptName.sh", with
 
 ##### Starting/Stopping the Guest Process #####
 
-Currently, there is no way to start an arbitrary command/script using the externally available API. The behavior described in this section is very likely to change.    
+Currently, there is no way to start an arbitrary command/script using the externally available API. The behavior described in this section is very likely to change.

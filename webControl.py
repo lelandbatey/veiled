@@ -104,7 +104,11 @@ class controlBoard():
     def initController(self, proccesName, scriptName):
 
         # Adds new dictionary entry with
-        self.processGroup[proccesName] = procControl(scriptName)
+        try: 
+            if self.processGroup[processName]:
+                return "a process with that name already exists"
+        except:
+            self.processGroup[proccesName] = procControl(scriptName)
 
     def sendProcessCommand(self, processName, command):
         """ Given the name of a process, it sends a command to it. """
@@ -172,24 +176,6 @@ class controlBoard():
 
         return toReturn
 
-    # def processStart(self, processName):
-
-    #     if processName in self.processGroup.keys():
-    #         refProcess = self.processGroup[processName]
-    #         refProcess.start()
-    #         return True
-    #     else:
-    #         return False
-
-    # def processKill(self, processName):
-
-    #     if processName in self.processGroup.keys():
-    #         refProcess = self.processGroup[processName]
-    #         refProcess.killConsole()
-    #         return True
-    #     else:
-    #         return False
-
 
 ### Reads Configuration File ###
     # Configuration file is just a json file. The "key" must be "scriptPath" with the value being a string that is the path to the script (either absolute or relative to the instance of webControl)
@@ -253,24 +239,6 @@ def kill():
 
     return genericRequestHandler(request,"kill")
 
-    # if request.headers['Content-Type'] == 'application/json':
-    #     if "name" in parsedContent.keys:
-            
-    #         processName = parsedContent["name"]
-    #         if processName in bigBoard.processGroup.keys():
-                
-    #             bigBoard.processOperator(processName,"kill"):
-    #             toReturn="process killed"
-            
-    #         else: # if no process exists with the given name
-    #             toReturn = "no process exists with the given name"
-    #     else: # if there wasn't a "name" key
-    #         toReturn = "did not specify a value for \"name\" in arguments"
-    # else: # If the content is not json
-    #     toReturn = "request must be a POST request formatted as JSON"
-
-    # return toReturn
-
 
     remoteBeta.killConsole() # Calls close() with force set to true
     return "Killing script\n"
@@ -303,12 +271,6 @@ def status():
     toReturn = genericRequestHandler(request,"status")
     return toReturn
 
-    # if remoteBeta.isRunning == False:
-    #     toReturn = "Offline\n"
-    # elif remoteBeta.isRunning == True:
-    #     toReturn = "Online\n"
-
-    # return toReturn
 
 @app.route('/cmd/', methods = ['POST'])
 def apiCmd():
