@@ -149,6 +149,10 @@ class controlBoard():
         """ Main method wrapper for procControl """
         toReturn = True
 
+        print "processName: " + processName
+        print "operation  : " + operation
+        print "command    : " + operation
+
         if processName in self.processGroup.keys():
             refProcess = self.processGroup[processName]
         else:
