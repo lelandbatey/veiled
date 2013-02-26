@@ -152,7 +152,7 @@ class controlBoard():
         if processName in self.processGroup.keys():
             refProcess = self.processGroup[processName]
         else:
-            toReturn = False
+            toReturn = "no process of that name"
 
         if operation == "kill":
             refProcess.killConsole()
@@ -172,7 +172,7 @@ class controlBoard():
         elif operation == "status":
             toReturn = self.getProcessInfo(refProcess)
         else:
-            toReturn = False
+            toReturn = "no operation of that name"
 
         return toReturn
 
@@ -200,7 +200,7 @@ def genericRequestHandler(request,operation):
     parsedContent = request.json
 
     if request.headers['Content-Type'] == 'application/json':
-        if "processName" in parsedContent.key():
+        if "processName" in parsedContent.keys():
             
             processName = parsedContent["processName"]
             if processName in bigBoard.processGroup.keys():
