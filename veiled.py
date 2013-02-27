@@ -1,4 +1,3 @@
-from flask import Flask, request, json
 import pexpect
 from Queue import Queue, Empty
 from threading import Thread
@@ -6,15 +5,11 @@ from threading import Thread
 #from time import sleep
 import os
 
-#from remoteControl import termWrap
 
-app = Flask(__name__)
-
-
-class procControl():
+class procControl(object):
     """ Wrapper for pexpect, providing useful methods for controlling terminal applications """
     def __init__(self, scriptName, procType = ""):
-        #super(procControl, self).__init__() # <-- I don't quite get this :/
+        super(procControl, self).__init__() # <-- I don't quite get this :/
         self.scriptName = scriptName
 
         # If we where passed an absoloute path to the file to run, then we set up self.cwd to be the directory which the script is inside.
@@ -69,6 +64,9 @@ class procControl():
         
 
     def getOut(self):
+        """ Returns all new output from the process, if any. 
+
+        Additionally, this advances the state of the self.cmdOut, updating it with the latest information."""
     # GetConsoleOut:
     #   Returns everything that the process has spit out to the command line since the last time you called getConsoleOut()
         
@@ -98,13 +96,14 @@ class procControl():
         self.process.close(True) # Calls close() with force set to true
         self.isRunning = False
 
-class controlBoard():
+class controlBoard(object):
     """ Meta-class for controlling multiple procControl objects"""
     def __init__(self):
         #super controlBoard, self).__init__() # <- I just don't know what that's for :/
         self.processGroup = {}
 
     def initController(self, proccesName, scriptName):
+        """ Initializes a new procControl object with the given name and script, and stores it in the dictionary of procControl objects. """
 
         # Adds new dictionary entry with
         try: 
@@ -123,7 +122,13 @@ class controlBoard():
             return
 
         process.sendCommand(command)
+
+##### ListProcess #####
+# Returns a list of strings, with each string being one of the names of the processes being run.
+# Returns ALL process names
     def listProcess(self):
+        """Returns a list all the names of processes for the current instance of the controlBoard class"""
+
         j = []
 
         print self.processGroup.keys()
@@ -134,6 +139,7 @@ class controlBoard():
         return j
 
     def getProcessInfo(self,processName):
+        """ Returns a dictionary of the state of various attributes of the given procControl object. """
 
         infoDict = {}
 
@@ -152,7 +158,10 @@ class controlBoard():
         return infoDict
 
     def processOperator(self, processName, operation, command=""):
-        """ Main method wrapper for procControl """
+        """ Main method/wrapper for procControl
+
+        Acts as a router for commands, sending the given command to the correct process.
+        Please note: this very much may not be the right way to do this. However, it is a way that works."""
         toReturn = True
 
         print "processName: " + processName
@@ -185,131 +194,3 @@ class controlBoard():
             toReturn = "no operation of that name"
 
         return toReturn
-
-
-### Reads Configuration File ###
-    # Configuration file is just a json file. The "key" must be "scriptPath" with the value being a string that is the path to the script (either absolute or relative to the instance of webControl)
-
-configFile = open('config.json','r')
-configJson = json.loads(configFile.read())
-
-scriptPath = configJson["scriptPath"]
-print scriptPath
-
-
-        
-remoteBeta = procControl("run_tf2_comp_exitance.sh")
-#remoteBeta.start()
-
-
-bigBoard = controlBoard()
-bigBoard.initController("testTf2Server", scriptPath)
-bigBoard.processOperator("testTf2Server","start")
-
-def genericRequestHandler(request,operation):
-    toReturn=""
-    parsedContent = request.json
-
-    if request.headers['Content-Type'] == 'application/json':
-        if "processName" in parsedContent.keys():
-            
-            processName = parsedContent["processName"]
-            if processName in bigBoard.processGroup.keys():
-                
-                if operation == "sendcmd": # if we are sending a command we need to figure out what that command is now and include it
-                    toReturn = bigBoard.processOperator(processName,operation,parsedContent["cmd"])
-                else: # For everything else, we don't include the cmd parameter.
-                    toReturn = bigBoard.processOperator(processName,operation)
-
-                print toReturn
-                if not toReturn:
-                    toReturn = "error in communicating command"
-
-            else: # if no process exists with the given name
-                toReturn = "no process exists with the given name"
-        else: # if there wasn't a "name" key
-            toReturn = "did not specify a value for 'name' in arguments"
-    else: # If the content is not json
-        toReturn = "request must be a POST request formatted as JSON"
-
-    return toReturn
-
-
-@app.route('/')
-def hello_world():
-    toReturn = []
-    
-    for rules in app.url_map.iter_rules():
-        toReturn.append(rules)
-
-
-@app.route('/kill/', methods = ['POST'])
-def kill():
-    # Handles killing the appropriate process.
-    toReturn = ""
-    parsedContent = request.json
-
-    return genericRequestHandler(request,"kill")
-
-
-    remoteBeta.killConsole() # Calls close() with force set to true
-    return "Killing script\n"
-
-@app.route('/read', methods = ['POST'])
-def read():
-    #toReturn = remoteBeta.getOut()
-    toReturn = genericRequestHandler(request,"getOutput")
-    return toReturn    
-
-@app.route('/start')
-def start():
-    toReturn = ""
-    if remoteBeta.isRunning == False:
-        toReturn = "Starting up the script\n"
-        remoteBeta.start()
-    elif remoteBeta.isRunning == True:
-        toReturn = "Already running\n"
-
-    return toReturn
-
-@app.route('/list')
-def listProcs():
-    return json.dumps(bigBoard.listProcess())
-
-
-@app.route('/status', methods = ['POST'])
-def status():
-    
-    toReturn = json.dumps(genericRequestHandler(request,"status"))
-    return toReturn
-
-
-@app.route('/cmd/', methods = ['POST'])
-def apiCmd():
-    # Requires:
-    # { "processName" : "theNameOfTheProcess",
-    #   "cmd" : "theCommandToBeSentToTheProcess" }
-
-    toReturn = ""
-
-
-    if request.headers['Content-Type'] == 'application/json':
-        
-        parsedCmd = request.json['cmd']
-        if genericRequestHandler(request,"sendcmd",parsedCmd):
-            toReturn="command communicated successfully"
-    else:
-        toReturn = "Error, input not JSON."
-    
-    
-    #print request.form
-    return toReturn#str(request.form)
-
-@app.route("/console")
-def console(): # Serves the console html page
-    return render_template('testPollPage.html')
-
-
-if __name__ == '__main__':
-    app.debug = True
-    app.run(host='0.0.0.0')

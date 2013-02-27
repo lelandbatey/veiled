@@ -29,7 +29,7 @@ class veiledClient(object):
         self.remoteInfo["processes"] = json.loads(urllib2.urlopen(address+"/list").read()) # gets the list of all process names from the server and stores as vaulue of "processes"
         self.remoteInfo["procInfo"] = []
 
-        print self.remoteInfo
+        #print self.remoteInfo
 
         for procName in self.remoteInfo["processes"]: # builds a 
             statUrl = address+"/status"
@@ -41,7 +41,7 @@ class veiledClient(object):
             print statResponse
             self.remoteInfo["procInfo"].append( json.loads(statResponse) )
 
-        print self.remoteInfo
+        #print self.remoteInfo
 
 
 
