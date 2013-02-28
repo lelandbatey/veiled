@@ -31,6 +31,11 @@ bigBoard.initController("testTf2Server", scriptPath)
 bigBoard.processOperator("testTf2Server","start")
 
 def genericRequestHandler(request,operation):
+    """ Performs more generic handling of requests received at access points.
+
+    Performs various error checks such as "did you specify a valid process name?" or "was the request of the correct type and format?"
+    These checks are pretty heavy handed and not elegant, but they are necessary.
+    These are designed so that if a developer where manually testing these requests (with say, curl), they'd actually receive useful error messaged. """
     toReturn=""
     parsedContent = request.json
 
@@ -85,16 +90,19 @@ def read():
     toReturn = genericRequestHandler(request,"getOutput")
     return toReturn    
 
+# Checks to see if the given 
 @app.route('/start')
 def start():
-    toReturn = ""
-    if remoteBeta.isRunning == False:
-        toReturn = "Starting up the script\n"
-        remoteBeta.start()
-    elif remoteBeta.isRunning == True:
-        toReturn = "Already running\n"
+    toReturn = genericRequestHandler(request,"start")
+
 
     return toReturn
+
+    # if remoteBeta.isRunning == False:
+    #     toReturn = "Starting up the script\n"
+    #     remoteBeta.start()
+    # elif remoteBeta.isRunning == True:
+    #     toReturn = "Already running\n"
 
 @app.route('/list')
 def listProcs():

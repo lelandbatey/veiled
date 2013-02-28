@@ -157,6 +157,24 @@ class controlBoard(object):
 
         return infoDict
 
+    def processStart(self, processName):
+        """ If a given procControl class is not running, it starts it. If it's already running, then it returns a string "already running". 
+
+        This also assumes that it's being passed a valid procControl name, since this would normally be accessed through the processOperator class which checks if the given name is valid already. """
+
+        toReturn = ""
+
+        refProcess = self.processGroup[processName]
+
+        if refProcess.isRunning:
+            toReturn = "process already running.\n"
+        else:
+            refProcess.start()
+            toReturn = "process has been started.\n"
+
+        return toReturn
+
+
     def processOperator(self, processName, operation, command=""):
         """ Main method/wrapper for procControl
 
@@ -177,7 +195,8 @@ class controlBoard(object):
             refProcess.killConsole()
 
         elif operation == "start":
-            refProcess.start()
+            toReturn = self.processStart(processName)
+            #refProcess.start()
 
         elif operation == "sendcmd":
             refProcess.sendCommand(command)
