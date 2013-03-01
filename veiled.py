@@ -32,12 +32,13 @@ class procControl(object):
 
         self.cmdOut = ""
 
-        
+        # To properly set the cwd, it needs to be passed into spawn() with all the other variables
 
-        self.process = pexpect.spawn(self.scriptName)
+        self.process = pexpect.spawn(self.scriptName,[],10000000,2000,None,None,self.cwd) # These seemingly arbitrarty variables are the default variables for spawn(), and are included so that we can pass in the current working directory properly. Actually, the '10000000' is the timeout, which is redundantly set below as well.
         self.process.logfile = file("logOut.log",'w')
 
-        self.process.cwd = self.cwd
+        #self.process.cwd = self.cwd
+        print self.process.cwd
         self.process.timeout = 10000000 # This means that trying to read() from pexpect.spawn will block forever (technically ten million seconds, which is about 115 days or till there is more input). However, since we are using a separate thread that can afford to block forever, we don't care. In fact, we want it to block forever!
 
         self.pauseQueue = Queue() # Used to tell the enqueue thread to pause for 0.5 seconds
@@ -59,6 +60,7 @@ class procControl(object):
         #try:
         for line in iter(out.readline, b''):
             queue.put(line)
+            #print line
             #print "somethingNew "+line
         out.close()
         
@@ -168,9 +170,11 @@ class controlBoard(object):
 
         if refProcess.isRunning:
             toReturn = "process already running.\n"
+            #print "process was already running; couldn't start"
         else:
             refProcess.start()
             toReturn = "process has been started.\n"
+            #print "process has been started!"
 
         return toReturn
 
@@ -202,7 +206,7 @@ class controlBoard(object):
             refProcess.sendCommand(command)
 
         elif operation == "getOutput":
-            refProcess.getOut()
+            toReturn = refProcess.getOut()
 
         elif operation == "updateOutput":
             refProcess.totalConsoleOut()

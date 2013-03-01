@@ -1,6 +1,7 @@
 import urllib
 import urllib2
 import json
+from pprint import pprint
 
 # # Really simple testing script of webControl.py
 
@@ -34,7 +35,7 @@ class veiledClient(object):
         for procName in self.remoteInfo["processes"]: # builds a 
             statUrl = address+"/status"
             reqData = json.dumps({"processName" : procName})
-            statReq = urllib2.Request(statUrl, reqData, {'Content-Type': 'application/json'})
+            statReq = urllib2.Request(statUrl, reqData, {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'})
             
             statResponse = urllib2.urlopen(statReq)
             statResponse = statResponse.read()
@@ -42,12 +43,29 @@ class veiledClient(object):
             self.remoteInfo["procInfo"].append( json.loads(statResponse) )
 
         #print self.remoteInfo
+    def getOutput(self,processName):
+        readAddress = self.address+"/read"
+        reqData = json.dumps({"processName" : processName})
+        statReq = urllib2.Request(readAddress, reqData, {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'})
+        
+        statResponse = urllib2.urlopen(statReq)
+        statResponse = statResponse.read()
 
+        return statResponse
+    def sendCmd(self,processName,command):
+        pass
 
 
 def main():
     testUrl = "http://192.168.2.150:5000"
     testClient = veiledClient(testUrl)
-    print testClient.remoteInfo
+    pprint(testClient.remoteInfo)
+
+    info = testClient.remoteInfo
+    for proc in info["processes"]:
+        print json.loads(testClient.getOutput(proc))
+
+
+
 
 main()

@@ -1,4 +1,4 @@
-from flask import Flask, request, json
+from flask import Flask, request, json, render_template
 import pexpect
 from Queue import Queue, Empty
 from threading import Thread
@@ -38,8 +38,9 @@ def genericRequestHandler(request,operation):
     These are designed so that if a developer where manually testing these requests (with say, curl), they'd actually receive useful error messaged. """
     toReturn=""
     parsedContent = request.json
+    print request.data
 
-    if request.headers['Content-Type'] == 'application/json':
+    if request.headers['Content-Type'] == 'application/x-www-form-urlencoded; charset=UTF-8':
         if "processName" in parsedContent.keys():
             
             processName = parsedContent["processName"]
@@ -50,7 +51,7 @@ def genericRequestHandler(request,operation):
                 else: # For everything else, we don't include the cmd parameter.
                     toReturn = bigBoard.processOperator(processName,operation)
 
-                print toReturn
+                #print toReturn
                 if not toReturn:
                     toReturn = "error in communicating command"
 
@@ -60,6 +61,7 @@ def genericRequestHandler(request,operation):
             toReturn = "did not specify a value for 'name' in arguments"
     else: # If the content is not json
         toReturn = "request must be a POST request formatted as JSON"
+        print request.headers['Content-Type']
 
     return toReturn
 
@@ -70,6 +72,7 @@ def hello_world():
     
     for rules in app.url_map.iter_rules():
         toReturn.append(rules)
+    return str(toReturn)
 
 
 @app.route('/kill/', methods = ['POST'])
@@ -87,15 +90,13 @@ def kill():
 @app.route('/read', methods = ['POST'])
 def read():
     #toReturn = remoteBeta.getOut()
-    toReturn = genericRequestHandler(request,"getOutput")
+    toReturn = json.dumps(genericRequestHandler(request,"getOutput"))
     return toReturn    
 
 # Checks to see if the given 
 @app.route('/start')
 def start():
     toReturn = genericRequestHandler(request,"start")
-
-
     return toReturn
 
     # if remoteBeta.isRunning == False:
@@ -113,6 +114,7 @@ def listProcs():
 def status():
     
     toReturn = json.dumps(genericRequestHandler(request,"status"))
+    print toReturn
     return toReturn
 
 
@@ -125,7 +127,7 @@ def apiCmd():
     toReturn = ""
 
 
-    if request.headers['Content-Type'] == 'application/json':
+    if request.headers['Content-Type'] == 'application/x-www-form-urlencoded; charset=UTF-8':
         
         parsedCmd = request.json['cmd']
         if genericRequestHandler(request,"sendcmd",parsedCmd):
@@ -137,7 +139,7 @@ def apiCmd():
     #print request.form
     return toReturn#str(request.form)
 
-@app.route("/console")
+@app.route("/testConsole")
 def console(): # Serves the console html page
     return render_template('testPollPage.html')
 

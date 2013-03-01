@@ -2,9 +2,6 @@
 <html>
 <body>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
-<textarea id="myTextArea" rows="10" cols="30">
-</textarea>
-
 <script type="text/javascript">
 xmlhttp= new XMLHttpRequest();
 
@@ -17,12 +14,43 @@ xmlhttp.onreadystatechange=function(){
         console.log(xmlhttp);
     }
 
-xmlhttp.open("GET","/read",true); 
+xmlhttp.open("GET","/list",true); 
 xmlhttp.send();
- 
+
+// var textarea = document.getElementById('textarea_id');
+// textarea.scrollTop = textarea.scrollHeight;
+
+// var processList = null;
+
+
+// {"name" : "testTf2Server"}
+// post ({"name" : "testTf2Server"})
+
+// The below method of getting this based on jQuery is from here: http://techoctave.com/c7/posts/60-simple-long-polling-example-with-javascript-and-jquery
+
+(function poll(){
+   setTimeout(function(){
+      //$.ajax({ url: "/list", success: function(data){
+        //Update your dashboard gauge
+        //salesGauge.setValue(data.value);
+        //document.getElementById( "myTextArea" ).innerHTML += ($.get("/list") + "\n");
+        $.post("/status", 
+            {"name" : "testTf2Server"},
+            function(data){
+            document.getElementById( "myTextArea" ).innerHTML += data +"\n";},
+            "application/json")
+
+        //Setup the next poll recursively
+        poll();
+      //}, dataType: "json"});
+  }, 500);
+})();
+
+
+
 </script>
 
-<textarea id="myTextArea" rows="40" cols="100">
+<textarea readonly id="myTextArea" rows="40" cols="100">
 
 </textarea>
 
