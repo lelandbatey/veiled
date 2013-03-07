@@ -30,7 +30,6 @@ xmlhttp.send();
 
 (function poll(){
    setTimeout(function(){
-      //$.ajax({ url: "/list", success: function(data){
         //Update your dashboard gauge
         //salesGauge.setValue(data.value);
         //document.getElementById( "myTextArea" ).innerHTML += ($.get("/list") + "\n");
@@ -42,11 +41,36 @@ xmlhttp.send();
 
         //Setup the next poll recursively
         poll();
-      //}, dataType: "json"});
   }, 500);
 })();
 
+$.ajax({
+    url:"/satus",
+    type:"POST",
+    data:{"name" : "testTf2Server"},
+    contentType:"application/json; charset=utf-8",
+    dataType:"json"
+    // success: function(){
+    //   ...
+    // }
+})
 
+$.ajax( {
+    url: 'https://url.com',
+    type: 'post',
+    data: {
+        access_token: 'XXXXXXXXXXXXXXXXXXX'
+    },
+    headers: {
+        Header_Name_One: 'Header Value One',   //If your header name has spaces or any other char not appropriate
+        "Header Name Two": 'Header Value Two'  //for object property name, use quoted notation shown in second
+    }
+    dataType: 'json',
+    success: function( data )
+    {
+        console.info(data);
+    }
+} );
 
 </script>
 
