@@ -124,8 +124,10 @@ class controlBoard(object):
         try: 
             if self.processGroup[processName]:
                 return "a process with that name already exists"
-        except:
+        except: # if no process with the given name exists, then:
             self.processGroup[proccesName] = procControl(scriptName)
+
+        return "process controler successfully created"
 
     def sendProcessCommand(self, processName, command):
         """ Given the name of a process, it sends a command to it. """
@@ -226,6 +228,10 @@ class controlBoard(object):
             
         elif operation == "status":
             toReturn = self.getProcessInfo(processName)
+        
+        elif operation == "createProcess":
+            toReturn = self.initController(processName,command)
+
         else:
             toReturn = "no operation of that name"
 

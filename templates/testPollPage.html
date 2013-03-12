@@ -1,8 +1,26 @@
 <!DOCTYPE html>
 <html>
-<body>
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+<head>
+<link rel="stylesheet" href="http://adrenl.in/css/bootstrap/css/bootstrap.css" />
+</head>
+
+<body style="padding-top: 60px;">
+    <style type="text/css">
+    textarea{
+        font-family: Monaco, Menlo, Consolas, 'Courier New', monospace;
+    } /* Gotta have DAT MONOSPACE for displaying console output correctly. */
+
+    .box {background-color:#fff; border-color:#ddd; border-style: solid; border-width: 1px; border-radius: 4px; padding: 20px; width:100%-20px; margin-bottom:20px;}
+    .box img {margin-left: auto; margin-right: auto; display: block; }
+    /* Yeah, return of the infamous "box" class! Huzza hacked CSS, and thank you SRND!*/
+
+    </style>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+
+
 <script type="text/javascript">
+
+
 xmlhttp= new XMLHttpRequest();
 
 xmlhttp.onreadystatechange=function(){
@@ -17,44 +35,74 @@ xmlhttp.onreadystatechange=function(){
 xmlhttp.open("GET","/list",true); 
 xmlhttp.send();
 
-// var textarea = document.getElementById('textarea_id');
-// textarea.scrollTop = textarea.scrollHeight;
+window.selProcess = "";
 
-// var processList = null;
+// Gets the list of processes from the server, storing them in the global variable "processList"
+function updateProcList(){
+    $.ajax({
+
+        url: '/list',
+        data: "",
+        success: function(data){
+
+            console.log(data);
+            window.processList = (data);
+
+            $.each(window.processList, function(key, value) {
+
+                console.log("value: "+value);
+                console.log("key: "+ key);
+                
+                if ( $('#procSelect').text().indexOf(value) == -1 ){ // If the "value" isn't already inside our list (in the select item) then we add it. however, if it is there, then we don't add it.
+
+                    $('#procSelect').append($("<option/>", {
+
+                        value: key,
+                        text: value
+                    }));
+                    
+                }
+                console.log("procSelect text: "+ $('#procSelect').text());
+            });
+        },
+        dataType: "json"
+    });
+}
+
+updateProcList();
+
+$(document).ready(function(){
+    $("#procSelect").change( function(){
+        console.log("procSelect changed")
+        var selected = $(this).find('option:selected').text();
+        console.log(selected);
+        window.selProcess = selected;
+        updateProcList();
+    });
+});
 
 
-// {"name" : "testTf2Server"}
-// post ({"name" : "testTf2Server"})
+/*
+### Recursive re-poll function ###
 
-// The below method of getting this based on jQuery is from here: http://techoctave.com/c7/posts/60-simple-long-polling-example-with-javascript-and-jquery
+Constantly polls for data, using a recursive method of waiting till data is recieved to call the next.
 
+The below method of getting this based on jQuery is from here: http://techoctave.com/c7/posts/60-simple-long-polling-example-with-javascript-and-jquery
+*/
 (function poll(){
    setTimeout(function(){
-        //document.getElementById( "myTextArea" ).innerHTML += ($.get("/list") + "\n");
-        // $.post("/status", 
-        //     {"name" : "testTf2Server"},
-        //     function(data){
-        //     document.getElementById( "myTextArea" ).innerHTML += data +"\n";},
-        //     "application/json")
         $.ajax( {
             url: '/read',
             type: 'post',
-            data:JSON.stringify({"processName" : "testTf2Server"}),
+            data:JSON.stringify({"processName" : window.selProcess}),
             contentType:"application/json; charset=utf-8",
             headers: {
                 'Content-Type': 'application/json'
-                // Header_Name_One: 'Header Value One',   //If your header name has spaces or any other char not appropriate
-                // "Header Name Two": 'Header Value Two'  //for object property name, use quoted notation shown in second
             },
             dataType: 'json',
             success: function( data ){
-                document.getElementById( "myTextArea" ).innerHTML = data +"\n";
+                document.getElementById( "myTextArea" ).innerHTML = data;
 
-                // The bellow declaration and function exists to make sure that the textarea remains scrolled to the bottom.
-                var psconsole = $('#myTextArea');
-                psconsole.scrollTop(
-                    psconsole[0].scrollHeight - psconsole.height()
-                );
             }
         } );
 
@@ -63,7 +111,32 @@ xmlhttp.send();
   }, 2000);
 })();
 
+(function infoPoll(){
+    setTimeout(function(){
+        $.ajax( {
+            url: '/status',
+            type: 'post',
+            data:JSON.stringify({"processName" : window.selProcess}),
+            contentType:"application/json; charset=utf-8",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            dataType: 'json',
+            success: function( data ){
+                //$('#infoBox').text() = data;
+                console.log("data: "+ data);
+                document.getElementById( "infoBox" ).innerHTML = JSON.stringify(data);
+
+            }
+        } );
+
+        //Setup the next poll recursively
+        infoPoll();
+  }, 2000);
+})();
+
 function sendCommand(){
+    //event.preventDefault();
     var cmdToSend = $('#cmdField').val();
     $('#cmdField').val("");
     //alert(cmdToSend);
@@ -71,7 +144,7 @@ function sendCommand(){
         url: '/cmd/',
         type: "post",
         data: JSON.stringify({
-            "processName" : "testTf2Server",
+            "processName" : selProcess,
             "cmd" : cmdToSend
         }),
         contentType:"application/json; charset=utf-8",
@@ -80,53 +153,97 @@ function sendCommand(){
         },
         dataType: "json"
     })
+    return false;
 }
+
+
+function killCommand(){
+    //event.preventDefault();
+    var cmdToSend = $('#cmdField').val();
+    $('#cmdField').val("");
+    //alert(cmdToSend);
+    $.ajax( {
+        url: '/kill/',
+        type: "post",
+        data: JSON.stringify({
+            "processName" : window.selProcess,
+            "cmd" : cmdToSend
+        }),
+        contentType:"application/json; charset=utf-8",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        dataType: "json"
+    })
+    return false;
+}
+
+function startCommand(){
+    //event.preventDefault();
+    var cmdToSend = $('#cmdField').val();
+    $('#cmdField').val("");
+    //alert(cmdToSend);
+    $.ajax( {
+        url: '/start',
+        type: "post",
+        data: JSON.stringify({
+            "processName" : window.selProcess,
+            "cmd" : cmdToSend
+        }),
+        contentType:"application/json; charset=utf-8",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        dataType: "json"
+    })
+    return false;
+}
+
 
 
 // ### Intercepts the ENTER key so that pressing it just presses the "send command" button.
 $(document).ready(function(){
     $('#cmdField').keypress(function(e){
-      if(e.keyCode==13)
-      $('#sendButton').click();
+        if(e.keyCode==13){
+            event.preventDefault();
+            $('#sendButton').click();
+            return false;
+        }
     });
 });
 
-// $.ajax({
-//     url:"/satus",
-//     type:"POST",
-//     data:{"name" : "testTf2Server"},
-//     contentType:"application/json; charset=utf-8",
-//     dataType:"json"
-//     // success: function(){
-//     //   ...
-//     // }
-// })
 
-// $.ajax( {
-//     url: 'https://url.com',
-//     type: 'post',
-//     data: {
-//         access_token: 'XXXXXXXXXXXXXXXXXXX'
-//     },
-//     headers: {
-//         Header_Name_One: 'Header Value One',   //If your header name has spaces or any other char not appropriate
-//         "Header Name Two": 'Header Value Two'  //for object property name, use quoted notation shown in second
-//     }
-//     dataType: 'json',
-//     success: function( data )
-//     {
-//         console.info(data);
-//     }
-// } );
-
+// Waits 3 seconds before it drops the scrollbar to the bottom of the page. The wait is so that it the textArea can get populated with data first. Once it is, then it drops the scrollbar to the bottom. This leads to a much better user experience.
+setTimeout(function(){
+    var psconsole = $('#myTextArea');
+    psconsole.scrollTop(
+        psconsole[0].scrollHeight - psconsole.height()
+    )}, 3000
+)
 </script>
+<div class="container">
+    <div class="span4">
+        <select id="procSelect"></select>
+        <pre>
+        <div id="infoBox">
+        
+        </div>
+        </pre>
+    </div>
+    <div class="span7">
+        <button onclick="killCommand()" id="killButton">Kill CMD</button>
+        <button onclick="startCommand()" id="startButton">Start CMD</button>
+        <br>
+        <textarea readonly class="span8" id="myTextArea" rows="40" cols="100">
 
-<textarea readonly id="myTextArea" rows="40" cols="100">
-
-</textarea><br>
-
-<input id="cmdField" size="30" >
-<button onclick="sendCommand()" id="sendButton">Send CMD</button>
+        </textarea><br>
+        <form>
+            <input id="cmdField" size="30" >
+            <button onclick="sendCommand()" id="sendButton" type="button">Send CMD</button>
+        </form>
+        <button onclick="updateProcList()" id="updateBtn" type="button">UpdateList</button>
+    </div>
+</div>
 
 </body>
 </html>

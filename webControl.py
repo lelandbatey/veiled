@@ -22,7 +22,7 @@ print scriptPath
 
 
         
-remoteBeta = procControl("run_tf2_comp_exitance.sh")
+#remoteBeta = procControl("run_tf2_comp_exitance.sh")
 #remoteBeta.start()
 
 
@@ -44,10 +44,12 @@ def genericRequestHandler(request,operation):
         if "processName" in parsedContent.keys():
             
             processName = parsedContent["processName"]
-            if processName in bigBoard.processGroup.keys():
+            if processName in bigBoard.processGroup.keys() or operation == "createProcess":
                 
                 if operation == "sendcmd": # if we are sending a command we need to figure out what that command is now and include it
                     toReturn = bigBoard.processOperator(processName,operation,parsedContent["cmd"])
+                elif operation == "createProcess":
+                    toReturn = bigBoard.processOperator(processName,operation,parsedContent["scriptPath"])
                 else: # For everything else, we don't include the cmd parameter.
                     toReturn = bigBoard.processOperator(processName,operation)
 
@@ -94,7 +96,7 @@ def read():
     return toReturn    
 
 # Checks to see if the given 
-@app.route('/start')
+@app.route('/start', methods = ['POST'])
 def start():
     toReturn = genericRequestHandler(request,"start")
     return toReturn
@@ -130,9 +132,9 @@ def apiCmd():
     if request.headers['Content-Type'] == 'application/json':
         
         parsedCmd = request.json['cmd']
-        print "\n!! WE GOT A REQEUST:\n"+str(request.json)+"\n"
+        #print "\n!! WE GOT A REQEUST:\n"+str(request.json)+"\n"
         returned = genericRequestHandler(request,"sendcmd")
-        print returned
+        #print returned
         if returned:
             toReturn="command communicated successfully"
     else:
@@ -141,6 +143,24 @@ def apiCmd():
     
     #print request.form
     return toReturn#str(request.form)
+
+
+# ### CreateProcess ###
+# Basic Method:
+
+#     {
+#         "processName" : "full name of the new process",
+#         "scriptPath" : "path to script"
+#     }
+
+@app.route("/createProcess", methods = ['POST'])
+def createProcess():
+    pass
+    toReturn = genericRequestHandler(request,"createProcess")
+    return toReturn
+
+
+
 
 @app.route("/testConsole")
 def console(): # Serves the console html page

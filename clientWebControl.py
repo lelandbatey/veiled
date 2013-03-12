@@ -52,8 +52,26 @@ class veiledClient(object):
         statResponse = statResponse.read()
 
         return statResponse
+
     def sendCmd(self,processName,command):
         pass
+
+    def createProcess(self,processName,scriptPath):
+        readAddress = self.address+"/createProcess"
+        reqData = json.dumps({'processName':processName,"scriptPath":scriptPath})
+        procReq = urllib2.Request(readAddress, reqData, {'Content-Type': 'application/json'})
+
+        procResponse = urllib2.urlopen(procReq)
+        procResponse = procResponse.read()
+
+        reqData = json.dumps({'processName':processName})
+        readAddress = self.address+"/start"
+        procReq = urllib2.Request(readAddress, reqData, {'Content-Type': 'application/json'})
+
+        procResponse = urllib2.urlopen(procReq)
+        procResponse = procResponse.read()
+
+        return procResponse
 
 
 def main():
@@ -64,6 +82,10 @@ def main():
     info = testClient.remoteInfo
     for proc in info["processes"]:
         print json.loads(testClient.getOutput(proc))
+
+    pprint(testClient.createProcess("bash","/bin/bash"))
+
+
 
 
 
