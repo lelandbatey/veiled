@@ -7,26 +7,35 @@ from threading import Thread
 import os
 from veiled import *
 
+# In this feild, have the 
+configuration_file = "congif.json"
+
 
 app = Flask(__name__)
-
-
 ### Reads Configuration File ###
     # Configuration file is just a json file. The "key" must be "scriptPath" with the value being a string that is the path to the script (either absolute or relative to the instance of webControl)
 
-configFile = open('config.json','r')
-configJson = json.loads(configFile.read())
+# configFile = open('config.json','r')
+# configJson = json.loads(configFile.read())
+bigBoard = controlBoard()
 
-scriptPath = configJson["scriptPath"]
-print scriptPath
+def loadConfig(configFile = "config.json"):
+    configFile = open(configFile,"r")
+    configJson = json.loads(configFile.read())
+
+    for stuff in configJson:
+        bigBoard.initController(stuff["name"],stuff["scriptPath"])
+        if stuff["autoStart"]:
+            bigBoard.processOperator(stuff["name"],"start")
+
+loadConfig(configuration_file)
 
 
-        
 #remoteBeta = procControl("run_tf2_comp_exitance.sh")
 #remoteBeta.start()
 
 
-bigBoard = controlBoard()
+# bigBoard = controlBoard()
 bigBoard.initController("testTf2Server", scriptPath)
 bigBoard.processOperator("testTf2Server","start")
 
