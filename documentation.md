@@ -31,19 +31,19 @@ Default Methods:
         "kill"  : "/kill"
     }
 
-    Each of these requires a request made to that URI to be in POST form, and to include the processName. The only exceptions to this are "list" and "cmd". "list" does not require any data, and will simply return a json formated list of all the names of all the processes. "cmd", on the other hand, also requires the string that should be sent to the given command.
-    Examples:
+Each of these requires a request made to that URI to be in POST form, and to include the processName. The only exceptions to this are "list" and "cmd". "list" does not require any data, and will simply return a json formated list of all the names of all the processes. "cmd", on the other hand, also requires the string that should be sent to the given command.
+Examples:
 
-        "cmd"
-        {
-            "processName" : "name of the process you're accessing"
-            "cmd" : "the full text of the string you want to send"
-        }
+    "cmd"
+    {
+        "processName" : "name of the process you're accessing"
+        "cmd" : "the full text of the string you want to send"
+    }
 
-        "read"
-        {
-            "processName" : "the full name of the process you're accessing"
-        }
+    "read"
+    {
+        "processName" : "the full name of the process you're accessing"
+    }
 
 
 

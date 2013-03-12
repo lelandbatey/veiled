@@ -35,7 +35,7 @@ class veiledClient(object):
         for procName in self.remoteInfo["processes"]: # builds a 
             statUrl = address+"/status"
             reqData = json.dumps({"processName" : procName})
-            statReq = urllib2.Request(statUrl, reqData, {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'})
+            statReq = urllib2.Request(statUrl, reqData, {'Content-Type': 'application/json'})
             
             statResponse = urllib2.urlopen(statReq)
             statResponse = statResponse.read()
@@ -46,7 +46,7 @@ class veiledClient(object):
     def getOutput(self,processName):
         readAddress = self.address+"/read"
         reqData = json.dumps({"processName" : processName})
-        statReq = urllib2.Request(readAddress, reqData, {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'})
+        statReq = urllib2.Request(readAddress, reqData, {'Content-Type': 'application/json'})
         
         statResponse = urllib2.urlopen(statReq)
         statResponse = statResponse.read()

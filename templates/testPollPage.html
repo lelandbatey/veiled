@@ -30,53 +30,103 @@ xmlhttp.send();
 
 (function poll(){
    setTimeout(function(){
-        //Update your dashboard gauge
-        //salesGauge.setValue(data.value);
         //document.getElementById( "myTextArea" ).innerHTML += ($.get("/list") + "\n");
-        $.post("/status", 
-            {"name" : "testTf2Server"},
-            function(data){
-            document.getElementById( "myTextArea" ).innerHTML += data +"\n";},
-            "application/json")
+        // $.post("/status", 
+        //     {"name" : "testTf2Server"},
+        //     function(data){
+        //     document.getElementById( "myTextArea" ).innerHTML += data +"\n";},
+        //     "application/json")
+        $.ajax( {
+            url: '/read',
+            type: 'post',
+            data:JSON.stringify({"processName" : "testTf2Server"}),
+            contentType:"application/json; charset=utf-8",
+            headers: {
+                'Content-Type': 'application/json'
+                // Header_Name_One: 'Header Value One',   //If your header name has spaces or any other char not appropriate
+                // "Header Name Two": 'Header Value Two'  //for object property name, use quoted notation shown in second
+            },
+            dataType: 'json',
+            success: function( data ){
+                document.getElementById( "myTextArea" ).innerHTML = data +"\n";
+
+                // The bellow declaration and function exists to make sure that the textarea remains scrolled to the bottom.
+                var psconsole = $('#myTextArea');
+                psconsole.scrollTop(
+                    psconsole[0].scrollHeight - psconsole.height()
+                );
+            }
+        } );
 
         //Setup the next poll recursively
         poll();
-  }, 500);
+  }, 2000);
 })();
 
-$.ajax({
-    url:"/satus",
-    type:"POST",
-    data:{"name" : "testTf2Server"},
-    contentType:"application/json; charset=utf-8",
-    dataType:"json"
-    // success: function(){
-    //   ...
-    // }
-})
+function sendCommand(){
+    var cmdToSend = $('#cmdField').val();
+    $('#cmdField').val("");
+    //alert(cmdToSend);
+    $.ajax( {
+        url: '/cmd/',
+        type: "post",
+        data: JSON.stringify({
+            "processName" : "testTf2Server",
+            "cmd" : cmdToSend
+        }),
+        contentType:"application/json; charset=utf-8",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        dataType: "json"
+    })
+}
 
-$.ajax( {
-    url: 'https://url.com',
-    type: 'post',
-    data: {
-        access_token: 'XXXXXXXXXXXXXXXXXXX'
-    },
-    headers: {
-        Header_Name_One: 'Header Value One',   //If your header name has spaces or any other char not appropriate
-        "Header Name Two": 'Header Value Two'  //for object property name, use quoted notation shown in second
-    }
-    dataType: 'json',
-    success: function( data )
-    {
-        console.info(data);
-    }
-} );
+
+// ### Intercepts the ENTER key so that pressing it just presses the "send command" button.
+$(document).ready(function(){
+    $('#cmdField').keypress(function(e){
+      if(e.keyCode==13)
+      $('#sendButton').click();
+    });
+});
+
+// $.ajax({
+//     url:"/satus",
+//     type:"POST",
+//     data:{"name" : "testTf2Server"},
+//     contentType:"application/json; charset=utf-8",
+//     dataType:"json"
+//     // success: function(){
+//     //   ...
+//     // }
+// })
+
+// $.ajax( {
+//     url: 'https://url.com',
+//     type: 'post',
+//     data: {
+//         access_token: 'XXXXXXXXXXXXXXXXXXX'
+//     },
+//     headers: {
+//         Header_Name_One: 'Header Value One',   //If your header name has spaces or any other char not appropriate
+//         "Header Name Two": 'Header Value Two'  //for object property name, use quoted notation shown in second
+//     }
+//     dataType: 'json',
+//     success: function( data )
+//     {
+//         console.info(data);
+//     }
+// } );
 
 </script>
 
 <textarea readonly id="myTextArea" rows="40" cols="100">
 
-</textarea>
+</textarea><br>
+
+<input id="cmdField" size="30" >
+<button onclick="sendCommand()" id="sendButton">Send CMD</button>
 
 </body>
 </html>

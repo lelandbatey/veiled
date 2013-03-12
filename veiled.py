@@ -1,6 +1,7 @@
 import pexpect
 from Queue import Queue, Empty
 from threading import Thread
+from collections import deque
 #from pprint import pprint
 #from time import sleep
 import os
@@ -41,8 +42,10 @@ class procControl(object):
         print self.process.cwd
         self.process.timeout = 10000000 # This means that trying to read() from pexpect.spawn will block forever (technically ten million seconds, which is about 115 days or till there is more input). However, since we are using a separate thread that can afford to block forever, we don't care. In fact, we want it to block forever!
 
-        self.pauseQueue = Queue() # Used to tell the enqueue thread to pause for 0.5 seconds
+        #self.pauseQueue = Queue() # Used to tell the enqueue thread to pause for 0.5 seconds
         self.outQueue = Queue()
+
+        self.newestOut = deque(maxlen=150) # A deque allows us to have a "tickertape" style interface that is composed only of the most recent output from the loop generator.
         
         self.procThread = Thread(target=self.enqueue_output, args=(self.process, self.outQueue))
         self.procThread.daemon = True # When the program dies, our thread dies as well.
@@ -60,6 +63,7 @@ class procControl(object):
         #try:
         for line in iter(out.readline, b''):
             queue.put(line)
+            self.newestOut.append(line)
             #print line
             #print "somethingNew "+line
         out.close()
@@ -86,9 +90,18 @@ class procControl(object):
         """ Returns all the output of the console since the start() method was called, but does not include the latests output of the console that has not been called via getOut() """
         return self.cmdOut
 
+    def recentOutput(self):
+        """ Returns a string of the contents of the newestOut deque() object. Use this for getting the most recent stuff as output. """
+        toReturn = ""
+
+        for i in self.newestOut:
+            toReturn+=i
+
+        return toReturn
+
     def sendCommand(self, command):
         """ Sends the given string to the running process as if it was typed into the keyboard """
-        self.pauseQueue.put(True)
+        #self.pauseQueue.put(True)
         #time.sleep(1)
         self.process.send(command)
 
@@ -203,10 +216,10 @@ class controlBoard(object):
             #refProcess.start()
 
         elif operation == "sendcmd":
-            refProcess.sendCommand(command)
+            refProcess.sendCommand(command+"\n")
 
         elif operation == "getOutput":
-            toReturn = refProcess.getOut()
+            toReturn = refProcess.recentOutput()
 
         elif operation == "updateOutput":
             refProcess.totalConsoleOut()

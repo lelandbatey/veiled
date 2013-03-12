@@ -40,7 +40,7 @@ def genericRequestHandler(request,operation):
     parsedContent = request.json
     print request.data
 
-    if request.headers['Content-Type'] == 'application/x-www-form-urlencoded; charset=UTF-8':
+    if request.headers['Content-Type'] == 'application/json':
         if "processName" in parsedContent.keys():
             
             processName = parsedContent["processName"]
@@ -127,10 +127,13 @@ def apiCmd():
     toReturn = ""
 
 
-    if request.headers['Content-Type'] == 'application/x-www-form-urlencoded; charset=UTF-8':
+    if request.headers['Content-Type'] == 'application/json':
         
         parsedCmd = request.json['cmd']
-        if genericRequestHandler(request,"sendcmd",parsedCmd):
+        print "\n!! WE GOT A REQEUST:\n"+str(request.json)+"\n"
+        returned = genericRequestHandler(request,"sendcmd")
+        print returned
+        if returned:
             toReturn="command communicated successfully"
     else:
         toReturn = "Error, input not JSON."
