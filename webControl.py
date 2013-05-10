@@ -8,7 +8,7 @@ import os
 from veiled import *
 
 # In this feild, have the 
-configuration_file = "congif.json"
+configuration_file = "config.json"
 
 
 app = Flask(__name__)
@@ -25,6 +25,7 @@ def loadConfig(configFile = "config.json"):
 
     for stuff in configJson:
         bigBoard.initController(stuff["name"],stuff["scriptPath"])
+        print stuff
         if stuff["autoStart"]:
             bigBoard.processOperator(stuff["name"],"start")
 
@@ -36,8 +37,8 @@ loadConfig(configuration_file)
 
 
 # bigBoard = controlBoard()
-bigBoard.initController("testTf2Server", scriptPath)
-bigBoard.processOperator("testTf2Server","start")
+# bigBoard.initController("testTf2Server", scriptPath)
+# bigBoard.processOperator("testTf2Server","start")
 
 def genericRequestHandler(request,operation):
     """ Performs more generic handling of requests received at access points.
@@ -124,7 +125,7 @@ def listProcs():
 @app.route('/status', methods = ['POST'])
 def status():
     
-    toReturn = json.dumps(genericRequestHandler(request,"status"))
+    toReturn = json.dumps(genericRequestHandler(request,"status"), sort_keys=True,indent=4, separators=(',', ': '))
     print toReturn
     return toReturn
 
@@ -177,5 +178,5 @@ def console(): # Serves the console html page
 
 
 if __name__ == '__main__':
-    app.debug = True
+    app.debug = False
     app.run(host='0.0.0.0')

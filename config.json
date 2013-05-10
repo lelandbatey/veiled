@@ -1,7 +1,7 @@
 [
     {
         "name" : "tf2TestServer",
-        "scriptPath" : "/home/nacro/tf2/tf2Server1/orangebox/runTf2Server.sh",
+        "scriptPath" : "/home/ubuntu/hlds/tf2Server/orangebox/launchTf2Server.sh",
         "autoStart" : 1
     },
     {

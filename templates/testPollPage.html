@@ -111,7 +111,7 @@ The below method of getting this based on jQuery is from here: http://techoctave
   }, 2000);
 })();
 
-(function infoPoll(){
+$(document).ready(function infoPoll(){
     setTimeout(function(){
         $.ajax( {
             url: '/status',
@@ -133,7 +133,7 @@ The below method of getting this based on jQuery is from here: http://techoctave
         //Setup the next poll recursively
         infoPoll();
   }, 2000);
-})();
+});
 
 function sendCommand(){
     //event.preventDefault();
