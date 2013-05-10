@@ -75,7 +75,7 @@ class veiledClient(object):
 
 
 def main():
-    testUrl = "http://192.168.2.150:5000"
+    testUrl = "http://23.22.206.63:5000"
     testClient = veiledClient(testUrl)
     pprint(testClient.remoteInfo)
 

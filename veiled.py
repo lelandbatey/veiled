@@ -221,7 +221,8 @@ class controlBoard(object):
             refProcess.sendCommand(command+"\n")
 
         elif operation == "getOutput":
-            toReturn = refProcess.recentOutput()
+            if refProcess.isRunning:
+                toReturn = refProcess.recentOutput()
 
         elif operation == "updateOutput":
             refProcess.totalConsoleOut()
