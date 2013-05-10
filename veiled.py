@@ -223,6 +223,8 @@ class controlBoard(object):
         elif operation == "getOutput":
             if refProcess.isRunning:
                 toReturn = refProcess.recentOutput()
+            else:
+                toReturn = "process not running"
 
         elif operation == "updateOutput":
             refProcess.totalConsoleOut()
