@@ -23,20 +23,30 @@ Each of these can be installed via "pip install <package name here>".
 Default Methods:
     
     {
-        "start" : "/start"
-        "list"  : "/list"
-        "status": "/status"
-        "cmd"   : "/cmd/"
-        "read"  : "/read"
-        "kill"  : "/kill"
+        "start"         : "/start"
+        "list"          : "/list"
+        "status"        : "/status"
+        "cmd"           : "/cmd/"
+        "read"          : "/read"
+        "kill"          : "/kill"
+        "createProcess" : "/createProcess"
     }
 
 Each of these requires a request made to that URI to be in POST form, and to include the processName. The only exceptions to this are "list" and "cmd". "list" does not require any data, and will simply return a json formated list of all the names of all the processes. "cmd", on the other hand, also requires the string that should be sent to the given command.
 Examples:
+    
+    "createProcess"
+    {
+        "processName" : "name (can be thought of as an alias) of the process being started",
+        "scriptPath"  : "the ABSOLUTE PATH to the script."
+    }
+
+> Note for `createProcess`:
+> With createProcess, you cannot pass in a relative path. You also can't use shell syntax that's intended to self expand. That means you can't use '~' to refer to the home directory of the current user. You'd have to use the full path e.g. "/home/yourUser/maybe/some/dirs/script.sh".
 
     "cmd"
     {
-        "processName" : "name of the process you're accessing"
+        "processName" : "name of the process you're accessing",
         "cmd" : "the full text of the string you want to send"
     }
 
@@ -44,6 +54,12 @@ Examples:
     {
         "processName" : "the full name of the process you're accessing"
     }
+
+    "start"
+    {
+        "processName" : "the full name of the process you're accessing",
+    }
+
 
 
 
@@ -81,4 +97,17 @@ In this case, it will be executed as "/home/someuser/scrips/scriptName.sh", with
 
 ##### Starting/Stopping the Guest Process #####
 
-Currently, there is no way to start an arbitrary command/script using the externally available API. The behavior described in this section is very likely to change.
+<strike>Currently, there is no way to start an arbitrary command/script using the externally available API. The behavior described in this section is very likely to change.</strike>
+
+Huzzah, for arbitrary process creation has been implemented. That means that you can use the API to create arbitrary processes that are then controlled through the API!
+
+To launch a process, send a POST request to the "/createProcess" URI with the data as follows:
+
+"createProcess"
+    {
+        "processName" : "name (can be thought of as an alias) of the process being started",
+        "scriptPath"  : "the ABSOLUTE PATH to the script."
+    }
+
+> Note for `createProcess`:
+> With createProcess, you cannot pass in a relative path. You also can't use shell syntax that's intended to self expand. That means you can't use '~' to refer to the home directory of the current user. You'd have to use the full path e.g. "/home/yourUser/maybe/some/dirs/script.sh".

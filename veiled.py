@@ -29,7 +29,9 @@ class procControl(object):
         self.isRunning = False
         
     def start(self):
-        """Starts up the script as a pexpect object, then creating a thread to perpetualy read the output of the process running in pexpect and enqueueing it into our queue of output (self.outQueue). """
+        """Starts up the script as a pexpect object, then creating a thread to \
+        perpetualy read the output of the process running in pexpect and \
+        enqueueing it into our queue of output (self.outQueue). """
 
         self.cmdOut = ""
 
@@ -39,7 +41,7 @@ class procControl(object):
         self.process.logfile = file("logOut.log",'w')
 
         #self.process.cwd = self.cwd
-        print self.process.cwd
+        print "!! start() !!\n\t"+self.process.cwd
         self.process.timeout = 10000000 # This means that trying to read() from pexpect.spawn will block forever (technically ten million seconds, which is about 115 days or till there is more input). However, since we are using a separate thread that can afford to block forever, we don't care. In fact, we want it to block forever!
 
         #self.pauseQueue = Queue() # Used to tell the enqueue thread to pause for 0.5 seconds
@@ -72,7 +74,8 @@ class procControl(object):
     def getOut(self):
         """ Returns all new output from the process, if any. 
 
-        Additionally, this advances the state of the self.cmdOut, updating it with the latest information."""
+        Additionally, this advances the state of the self.cmdOut, updating it \
+        with the latest information."""
     # GetConsoleOut:
     #   Returns everything that the process has spit out to the command line since the last time you called getConsoleOut()
         
@@ -87,11 +90,14 @@ class procControl(object):
         return toReturn
 
     def totalConsoleOut(self):
-        """ Returns all the output of the console since the start() method was called, but does not include the latests output of the console that has not been called via getOut() """
+        """ Returns all the output of the console since the start() method was \
+        called, but does not include the latests output of the console that has \
+        not been called via getOut() """
         return self.cmdOut
 
     def recentOutput(self):
-        """ Returns a string of the contents of the newestOut deque() object. Use this for getting the most recent stuff as output. """
+        """ Returns a string of the contents of the newestOut deque() object. \
+        Use this for getting the most recent stuff as output. """
         toReturn = ""
 
         for i in self.newestOut:
@@ -111,14 +117,22 @@ class procControl(object):
         self.process.close(True) # Calls close() with force set to true
         self.isRunning = False
 
+    def isAlive(self):
+        """ Passthrough for pexpect isalive() method. """
+        return self.process.isalive()
+
 class controlBoard(object):
-    """ Meta-class for controlling multiple procControl objects"""
+    """ Meta-class for controlling multiple procControl objects.
+
+    Named after the large audio mixers seen at concerts, allowing you to control\
+    and ajust all sorts of different devices from one huge, cool looking place."""
     def __init__(self):
         #super controlBoard, self).__init__() # <- I just don't know what that's for :/
         self.processGroup = {}
 
     def initController(self, proccesName, scriptName):
-        """ Initializes a new procControl object with the given name and script, and stores it in the dictionary of procControl objects. """
+        """ Initializes a new procControl object with the given name and script,\
+         and stores it in the dictionary of procControl objects. """
 
         # Adds new dictionary entry with
         try: 
@@ -126,6 +140,9 @@ class controlBoard(object):
                 return "a process with that name already exists"
         except: # if no process with the given name exists, then:
             self.processGroup[proccesName] = procControl(scriptName)
+            # Creates a new entry in the dictionary which keeps track of our processes
+            # with the 'key' being the given name of the process and the value 
+            # being the procControl object.
 
         return "process controler successfully created"
 
@@ -135,7 +152,7 @@ class controlBoard(object):
         try:
             process = self.processGroup["processName"]
         except KeyError:
-            print "Process doesn't exist!"
+            print " == sendProcessCommand ==\n\tProcess doesn't exist!"
             return
 
         process.sendCommand(command)
@@ -148,7 +165,7 @@ class controlBoard(object):
 
         j = []
 
-        print self.processGroup.keys()
+        print " == listProcess() ==\n\t"+self.processGroup.keys()
 
         for keys in self.processGroup.keys():
             j.append(keys)
@@ -160,26 +177,29 @@ class controlBoard(object):
 
         infoDict = {}
 
-        print processName
-        print self.processGroup.keys()
+        print " == getProcessInfo() ==\n\t"+processName
+        print "\t processGroup.keys():"+self.processGroup.keys()
 
         if processName in self.processGroup.keys():
             refProcess = self.processGroup[processName]
             infoDict["name"] = processName
             infoDict["cwd"] = refProcess.cwd
             infoDict["scriptName"] = refProcess.scriptName
-            infoDict["running"] = refProcess.isRunning
+            infoDict["running"] = refProcess.isAlive()
         else:
             return False
 
         return infoDict
 
     def processStart(self, processName):
-        """ If a given procControl class is not running, it starts it. If it's already running, then it returns a string "already running". 
+        """ If a given procControl class is not running, it starts it. If it's \
+        already running, then it returns a string "already running". 
 
-        This also assumes that it's being passed a valid procControl name, since this would normally be accessed through the processOperator class which checks if the given name is valid already. """
+        This also assumes that it's being passed a valid procControl name, \
+        since this would normally be accessed through the processOperator\
+         class which checks if the given name is valid already. """
 
-        toReturn = ""
+        toReturn = 'an error of some type occured while starting the proccess'
 
         refProcess = self.processGroup[processName]
 
@@ -201,9 +221,10 @@ class controlBoard(object):
         Please note: this very much may not be the right way to do this. However, it is a way that works."""
         toReturn = True
 
-        print "processName: " + processName
-        print "operation  : " + operation
-        print "command    : " + command
+        print " == processOperator =="
+        print "  processName: " + processName
+        print "  operation  : " + operation
+        print "  command    : " + command
 
         if processName in self.processGroup.keys():
             refProcess = self.processGroup[processName]

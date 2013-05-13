@@ -24,6 +24,17 @@ class veiledClient(object):
         self.address = address
         self.remoteInfo = {}
 
+        # Here we're defining some nice constants that refer to the various URL's
+        # that get referenced frequently. I put these here so that I can quickly
+        # and easily change them later if need be.
+        self.createUrl = "/createProcess"
+        self.listUrl = "/list"
+        self.readUrl = "/read"
+        self.startUrl = "/start"
+        self.statusUrl = "/status"
+        self.cmdUrl = "/cmd/"
+
+
         procReq = urllib2.urlopen(address+"/list")
         print procReq.geturl()
 
@@ -32,40 +43,18 @@ class veiledClient(object):
 
         #print self.remoteInfo
 
-        for procName in self.remoteInfo["processes"]: # builds a 
-            statUrl = address+"/status"
-            reqData = json.dumps({"processName" : procName})
-            statReq = urllib2.Request(statUrl, reqData, {'Content-Type': 'application/json'})
-            
-            statResponse = urllib2.urlopen(statReq)
-            statResponse = statResponse.read()
-            print statResponse
-            self.remoteInfo["procInfo"].append( json.loads(statResponse) )
+        for procName in self.remoteInfo["processes"]: # builds a nice dictionary of process information.
 
-        #print self.remoteInfo
-    def getOutput(self,processName):
-        readAddress = self.address+"/read"
-        reqData = json.dumps({"processName" : processName})
-        statReq = urllib2.Request(readAddress, reqData, {'Content-Type': 'application/json'})
-        
-        statResponse = urllib2.urlopen(statReq)
-        statResponse = statResponse.read()
+            statusResponse = self.postMesg(self.statusUrl,{"processName" : procName})
 
-        return statResponse
+            print statusResponse
+            self.remoteInfo["procInfo"].append( json.loads(statusResponse) )
 
-    def sendCmd(self,processName,command):
-        pass
-
-    def createProcess(self,processName,scriptPath):
-        readAddress = self.address+"/createProcess"
-        reqData = json.dumps({'processName':processName,"scriptPath":scriptPath})
-        procReq = urllib2.Request(readAddress, reqData, {'Content-Type': 'application/json'})
-
-        procResponse = urllib2.urlopen(procReq)
-        procResponse = procResponse.read()
-
-        reqData = json.dumps({'processName':processName})
-        readAddress = self.address+"/start"
+    def postMesg(self,url,data):
+        """ A generic method for posting data to the given url. \
+        Meant to make other methods shorter and easier to read. """
+        readAddress = self.address+url
+        reqData = json.dumps(data)
         procReq = urllib2.Request(readAddress, reqData, {'Content-Type': 'application/json'})
 
         procResponse = urllib2.urlopen(procReq)
@@ -73,9 +62,51 @@ class veiledClient(object):
 
         return procResponse
 
+    def getOutput(self,processName):
+        # readAddress = self.address+"/read"
+        # reqData = json.dumps({"processName" : processName})
+        # statReq = urllib2.Request(readAddress, reqData, {'Content-Type': 'application/json'})
+        
+        # statResponse = urllib2.urlopen(statReq)
+        # statResponse = statResponse.read()
+
+        #data = 
+        #print type(data)
+
+        toReturn = self.postMesg('/read', {"processName" : processName})
+
+        return toReturn
+
+    def sendCmd(self,processName,command):
+        
+        toReturn = self.postMesg(self.cmdUrl, {"processName": processName, "cmd":command })
+
+        return toReturn
+
+    def createProcess(self,processName,scriptPath):
+        # readAddress = self.address+"/createProcess"
+        # reqData = json.dumps({'processName':processName,"scriptPath":scriptPath})
+        # procReq = urllib2.Request(readAddress, reqData, {'Content-Type': 'application/json'})
+
+        # procResponse = urllib2.urlopen(procReq)
+        # procResponse = procResponse.read()
+
+        toReturn = self.postMesg(self.createProcess,{'processName':processName,"scriptPath":scriptPath})
+        
+        # reqData = json.dumps({'processName':processName})
+        # readAddress = self.address+"/start"
+        # procReq = urllib2.Request(readAddress, reqData, {'Content-Type': 'application/json'})
+
+        # procResponse = urllib2.urlopen(procReq)
+        # procResponse = procResponse.read()
+
+        toReturn = self.postMesg(self.startUrl,{'processName':processName})
+
+        return toReturn
+
 
 def main():
-    testUrl = "http://23.22.206.63:5000"
+    testUrl = "http://192.168.1.175:5000"
     testClient = veiledClient(testUrl)
     pprint(testClient.remoteInfo)
 
@@ -83,10 +114,8 @@ def main():
     for proc in info["processes"]:
         print json.loads(testClient.getOutput(proc))
 
-    pprint(testClient.createProcess("bash","/bin/bash"))
-
-
-
+    #pprint(testClient.createProcess("bash","/bin/bash"))
+    #testClient.sendCmd
 
 
 

@@ -25,7 +25,7 @@ def loadConfig(configFile = "config.json"):
 
     for stuff in configJson:
         bigBoard.initController(stuff["name"],stuff["scriptPath"])
-        print stuff
+        #print stuff
         if stuff["autoStart"]:
             bigBoard.processOperator(stuff["name"],"start")
 
@@ -48,7 +48,7 @@ def genericRequestHandler(request,operation):
     These are designed so that if a developer where manually testing these requests (with say, curl), they'd actually receive useful error messaged. """
     toReturn=""
     parsedContent = request.json
-    print request.data
+    print " @@ genericRequestHandler() @@\n\t"+str(request.data)
 
     if request.headers['Content-Type'] == 'application/json':
         if "processName" in parsedContent.keys():
@@ -73,7 +73,8 @@ def genericRequestHandler(request,operation):
             toReturn = "did not specify a value for 'name' in arguments"
     else: # If the content is not json
         toReturn = "request must be a POST request formatted as JSON"
-        print request.headers['Content-Type']
+        print " @@ genericRequestHandler() @@\n\tRequest not json, printing \
+        the sent in request 'Content-Type': "+str(request.headers['Content-Type'])
 
     return toReturn
 
@@ -126,7 +127,7 @@ def listProcs():
 def status():
     
     toReturn = json.dumps(genericRequestHandler(request,"status"), sort_keys=True,indent=4, separators=(',', ': '))
-    print toReturn
+    #print toReturn
     return toReturn
 
 
@@ -178,5 +179,5 @@ def console(): # Serves the console html page
 
 
 if __name__ == '__main__':
-    app.debug = False
+    app.debug = True
     app.run(host='0.0.0.0')

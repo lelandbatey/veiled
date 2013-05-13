@@ -14,6 +14,7 @@
     .box img {margin-left: auto; margin-right: auto; display: block; }
     /* Yeah, return of the infamous "box" class! Huzza hacked CSS, and thank you SRND!*/
 
+
     </style>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
 
@@ -21,19 +22,19 @@
 <script type="text/javascript">
 
 
-xmlhttp= new XMLHttpRequest();
+// xmlhttp= new XMLHttpRequest();
 
-xmlhttp.onreadystatechange=function(){
+// xmlhttp.onreadystatechange=function(){
 
-        if (xmlhttp.readyState==4 && xmlhttp.status==200){ // If the status is good
-            document.getElementById( "myTextArea" ).innerHTML = xmlhttp.responseText; // Then set the inside of the text area to the response data
-        }
-        console.log(xmlhttp.responseText);
-        console.log(xmlhttp);
-    }
+//         if (xmlhttp.readyState==4 && xmlhttp.status==200){ // If the status is good
+//             document.getElementById( "myTextArea" ).innerHTML = xmlhttp.responseText; // Then set the inside of the text area to the response data
+//         }
+//         console.log(xmlhttp.responseText);
+//         console.log(xmlhttp);
+//     }
 
-xmlhttp.open("GET","/list",true); 
-xmlhttp.send();
+// xmlhttp.open("GET","/list",true); 
+// xmlhttp.send();
 
 window.selProcess = "";
 
@@ -45,8 +46,10 @@ function updateProcList(){
         data: "",
         success: function(data){
 
+            // Alright, we actually got all the data we were hoping for.
+
             console.log(data);
-            window.processList = (data);
+            window.processList = (data); // Store that data in a global variable called processList
 
             $.each(window.processList, function(key, value) {
 
@@ -63,10 +66,27 @@ function updateProcList(){
                     
                 }
                 console.log("procSelect text: "+ $('#procSelect').text());
+
+
             });
+
+                // Context for why this exists where it does:
+                // We just went and got the 'data', namely all the processInformation
+                // on the remote server, storing it in the variable 'window.processList'.
+                // Then we use a jquery '$.each' loop to loop through that list of names,
+                // inserting them into the selectbox.
+                // SO, now that we did all that, this bit of code checks out the selectbox,
+                // checking to see which item is 'selected' (because by inserting stuff into
+                // the box, the first thing inserted is "selected" by default) and setting
+                // the selectedProcess variable to the string that happened to get placed
+                // in that first selection category.
+                window.selProcess = $("#procSelect").find('option:selected').text();
+                console.log(window.selProcess)
+
         },
         dataType: "json"
     });
+
 }
 
 updateProcList();
@@ -78,6 +98,13 @@ $(document).ready(function(){
         console.log(selected);
         window.selProcess = selected;
         updateProcList();
+
+        // // Upon updating the processList, we're going to drop the scrollbar to
+        // // the bottom of the box, just to make it a bit easier on the user.
+        // var psconsole = $('#myTextArea');
+        // psconsole.scrollTop(
+        //     psconsole[0].scrollHeight - psconsole.height()
+        // )
     });
 });
 
@@ -102,6 +129,11 @@ The below method of getting this based on jQuery is from here: http://techoctave
             dataType: 'json',
             success: function( data ){
                 document.getElementById( "myTextArea" ).innerHTML = data;
+                var psconsole = $('#myTextArea');
+                if (window.shouldDrop == true){
+                    psconsole.scrollTop(psconsole[0].scrollHeight - psconsole.height());
+                    window.shouldDrop = false;
+                };
 
             }
         } );
@@ -111,6 +143,32 @@ The below method of getting this based on jQuery is from here: http://techoctave
   }, 2000);
 })();
 
+function simple_json_pre_prettify(initJson){
+    prettyString = JSON.stringify(initJson);
+    // so I found that the easiest thing to do is to use regular expressions 
+    // (har har, "..two problems.." yeah I know) because I can do global search
+    // and replace that way using " /someString/g " which indicates that the 
+    // regexp should be applied globablly.
+    prettyString = prettyString.replace(/{/g,'{\n');
+    prettyString = prettyString.replace(/","/g,'",\n"');
+    prettyString = prettyString.replace(/,"/g,',\n"');
+    prettyString = prettyString.replace(/}/g,'\n}');
+    return prettyString;
+}
+
+function better_json_prettify(initJson){
+    // I think this is more concise and slightly more "layperson-readable" than
+    // what was created by simple_json_pre_prettify()
+    var prettyString = "";
+    $.each(initJson, function(index, value){
+        prettyString = prettyString+ index+' : '+value+'\n';
+    });
+    return prettyString;
+}
+
+//      infoPoll()
+// Goes and gets all information about the currently running process and prints
+// it into the "infoBox" element (which is just a pre). 
 $(document).ready(function infoPoll(){
     setTimeout(function(){
         $.ajax( {
@@ -123,9 +181,12 @@ $(document).ready(function infoPoll(){
             },
             dataType: 'json',
             success: function( data ){
-                //$('#infoBox').text() = data;
+                // Upon successfully getting all the necessary data, it inserts
+                // it into the correct place on the page ("infoBox")
                 console.log("data: "+ data);
-                document.getElementById( "infoBox" ).innerHTML = JSON.stringify(data);
+                document.getElementById( "infoBox" ).innerHTML = better_json_prettify(data); //JSON.stringify(data);
+                // Instead of just passing in the raw json, we try to make some 
+                // nice but simple changes to it in another function.
 
             }
         } );
@@ -207,6 +268,7 @@ $(document).ready(function(){
         if(e.keyCode==13){
             event.preventDefault();
             $('#sendButton').click();
+            window.shouldDrop = true;
             return false;
         }
     });
