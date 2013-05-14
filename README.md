@@ -10,4 +10,5 @@ Veiled requires:
 
     - Pexpect
     - Flask
+    - Flask-BasicAuth
 

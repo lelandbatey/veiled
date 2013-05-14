@@ -15,8 +15,9 @@ Veiled requires these python modules
 
     - Pexpect
     - Flask 
+    - Flask-BasicAuth
 
-Each of these can be installed via "pip install <package name here>".
+Each of these can be installed via "pip install [package name here]".
 
 ### Requests: ###
 
@@ -67,13 +68,13 @@ Examples:
 
 ###Flask Server###
 
-To interact with Veiled, you use a very simple and basic REST-style interface. For example, to get the status of a processControl method, you'd use an http GET request directed at http://<your veiled server address>/status . This would return the status of the app, such as whether it's running, it's location, and any important configuration details.
+To interact with Veiled, you use a very simple and basic REST-style interface. For example, to get the status of a processControl method, you'd use an http GET request directed at `http://[your veiled server address]/status` . This would return the status of the app, such as whether it's running, it's location, and any important configuration details.
 
-Similarly, to send a command, you'd make an http POST request to http://<your veiled server address>/cmd/ with the json data:
+Similarly, to send a command, you'd make an http POST request to `http://[your veiled server address]/cmd/` with the json data:
     
     {"cmd" : "command to send"}
 
-The dictionary key "cmd" is required to have the value interpreted as a command. Additionally, the value of the "cmd" key should be EXACTLY as you would type into the terminal. Note, do not use a newline character at the end of the passed value, as they'll be added automatically.
+The dictionary key "cmd" is required to have the value that will be interpreted as a command. Additionally, the value of the "cmd" key should be EXACTLY as you would type into the terminal. Note, do not use a newline character at the end of the passed value, as they'll be added automatically.
 
 Templates for webpages need to go in the "templates" directory. Check out the docs on Flask templates: http://flask.pocoo.org/docs/templating/
 
@@ -97,7 +98,7 @@ In this case, it will be executed as "/home/someuser/scrips/scriptName.sh", with
 
 ##### Starting/Stopping the Guest Process #####
 
-<strike>Currently, there is no way to start an arbitrary command/script using the externally available API. The behavior described in this section is very likely to change.</strike>
+<strike>~~Currently, there is no way to start an arbitrary command/script using the externally available API. The behavior described in this section is very likely to change.~~</strike>
 
 Huzzah, for arbitrary process creation has been implemented. That means that you can use the API to create arbitrary processes that are then controlled through the API!
 
