@@ -1,4 +1,5 @@
 from flask import Flask, request, json, render_template
+from flask.ext.basicauth import BasicAuth
 import pexpect
 from Queue import Queue, Empty
 from threading import Thread
@@ -17,17 +18,25 @@ app = Flask(__name__)
 
 # configFile = open('config.json','r')
 # configJson = json.loads(configFile.read())
+
+
 bigBoard = controlBoard()
 
 def loadConfig(configFile = "config.json"):
     configFile = open(configFile,"r")
     configJson = json.loads(configFile.read())
 
-    for stuff in configJson:
+    for stuff in configJson[0]:
         bigBoard.initController(stuff["name"],stuff["scriptPath"])
         #print stuff
         if stuff["autoStart"]:
             bigBoard.processOperator(stuff["name"],"start")
+
+    app.config['BASIC_AUTH_USERNAME'] = configJson[1]["username"]
+    app.config['BASIC_AUTH_PASSWORD'] = configJson[1]["password"]
+
+basic_auth = BasicAuth(app)
+    
 
 loadConfig(configuration_file)
 
@@ -50,7 +59,7 @@ def genericRequestHandler(request,operation):
     parsedContent = request.json
     print " @@ genericRequestHandler() @@\n\t"+str(request.data)
 
-    if request.headers['Content-Type'] == 'application/json':
+    if 'application/json' in request.headers['Content-Type']: # Firefox automatically appends some extra stuff onto the "Content-Type" header, even when TOLD NOT TO so you can't check for equality, only existance. Not a huge deal but a PAIN to track down.
         if "processName" in parsedContent.keys():
             
             processName = parsedContent["processName"]
@@ -140,7 +149,7 @@ def apiCmd():
     toReturn = ""
 
 
-    if request.headers['Content-Type'] == 'application/json':
+    if  'application/json' in request.headers['Content-Type']: # DANGIT THIS AGAIN FUUUUUUUUUUUUU
         
         parsedCmd = request.json['cmd']
         #print "\n!! WE GOT A REQEUST:\n"+str(request.json)+"\n"
@@ -174,6 +183,7 @@ def createProcess():
 
 
 @app.route("/testConsole")
+@basic_auth.required
 def console(): # Serves the console html page
     return render_template('testPollPage.html')
 

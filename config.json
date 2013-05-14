@@ -1,12 +1,18 @@
 [
+    [
+        {
+            "name" : "tf2TestServer",
+            "scriptPath" : "/home/ubuntu/hlds.old/tf2Server/orangebox/launchTf2Server.sh",
+            "autoStart" : 1
+        },
+        {
+            "name" : "exampleBash",
+            "scriptPath" : "/bin/bash",
+            "autoStart" : 0
+        }
+    ],
     {
-        "name" : "tf2TestServer",
-        "scriptPath" : "/home/ubuntu/hlds/tf2Server/orangebox/launchTf2Server.sh",
-        "autoStart" : 1
-    },
-    {
-        "name" : "exampleBash",
-        "scriptPath" : "/bin/bash",
-        "autoStart" : 0
+        "username" : "user",
+        "password" : "superpassword"
     }
 ]

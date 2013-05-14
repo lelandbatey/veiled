@@ -14,6 +14,22 @@
     .box img {margin-left: auto; margin-right: auto; display: block; }
     /* Yeah, return of the infamous "box" class! Huzza hacked CSS, and thank you SRND!*/
 
+    #myTextArea{
+        font-size: 14px;
+        font-weight: normal;
+        line-height: 20px;
+        font-family: Monaco, Menlo, Consolas, 'Courier New', monospace;
+        /*background-color: #eeeeee;*/
+        margin: 0;
+        font-size: 100%;
+        vertical-align: middle;
+        height: 810px;
+        width: 518px;
+        overflow:scroll;
+        display:inline-block;
+        overflow-x: hidden;
+        white-space: pre;
+    }
 
     </style>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
@@ -213,7 +229,8 @@ function sendCommand(){
             'Content-Type': 'application/json'
         },
         dataType: "json"
-    })
+    });
+    window.shouldDrop = true;
     return false;
 }
 
@@ -265,9 +282,12 @@ function startCommand(){
 // ### Intercepts the ENTER key so that pressing it just presses the "send command" button.
 $(document).ready(function(){
     $('#cmdField').keypress(function(e){
+        // console.log(e.keyCode)
+        // alert(e.keyCode)
         if(e.keyCode==13){
+            // alert("Hey man we're gettin the right code!")
+            sendCommand(); // For totally inexplicable reasons, this needs to come before 'event.preventDefault' for it to work in Firefox. Trust me, you don't want to know how long I spent figuring that out (4+ hours)
             event.preventDefault();
-            $('#sendButton').click();
             window.shouldDrop = true;
             return false;
         }
@@ -292,16 +312,24 @@ setTimeout(function(){
         </div>
         </pre>
     </div>
-    <div class="span7">
+    <div class="span7 " style="height: 890px">
         <button onclick="killCommand()" id="killButton">Kill CMD</button>
         <button onclick="startCommand()" id="startButton">Start CMD</button>
         <br>
-        <textarea readonly class="span8" id="myTextArea" rows="40" cols="100">
+<!--         <textarea readonly class="span8" id="myTextArea" rows="40" cols="100">
 
-        </textarea><br>
+        </textarea> -->
+        <pre>
+            <div id="myTextArea">
+
+            </div>
+        </pre>
+        <br>
         <form>
             <input id="cmdField" size="30" >
-            <button onclick="sendCommand()" id="sendButton" type="button">Send CMD</button>
+            <!-- <button onclick="sendCommand()" id="sendButton" type="button">Send CMD</button> -->
+            <input type="button" value="Submit" onclick="sendCommand()" id="sendButton"/>
+            <input style="visibility:hidden;">
         </form>
         <button onclick="updateProcList()" id="updateBtn" type="button">UpdateList</button>
     </div>

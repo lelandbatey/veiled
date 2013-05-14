@@ -44,7 +44,6 @@ class procControl(object):
         print "!! start() !!\n\t"+self.process.cwd
         self.process.timeout = 10000000 # This means that trying to read() from pexpect.spawn will block forever (technically ten million seconds, which is about 115 days or till there is more input). However, since we are using a separate thread that can afford to block forever, we don't care. In fact, we want it to block forever!
 
-        #self.pauseQueue = Queue() # Used to tell the enqueue thread to pause for 0.5 seconds
         self.outQueue = Queue()
 
         self.newestOut = deque(maxlen=150) # A deque allows us to have a "tickertape" style interface that is composed only of the most recent output from the loop generator.
@@ -66,8 +65,7 @@ class procControl(object):
         for line in iter(out.readline, b''):
             queue.put(line)
             self.newestOut.append(line)
-            #print line
-            #print "somethingNew "+line
+            
         out.close()
         
 
@@ -76,7 +74,6 @@ class procControl(object):
 
         Additionally, this advances the state of the self.cmdOut, updating it \
         with the latest information."""
-    # GetConsoleOut:
     #   Returns everything that the process has spit out to the command line since the last time you called getConsoleOut()
         
         toReturn = ""
@@ -106,20 +103,36 @@ class procControl(object):
         return toReturn
 
     def sendCommand(self, command):
-        """ Sends the given string to the running process as if it was typed into the keyboard """
-        #self.pauseQueue.put(True)
-        #time.sleep(1)
+        """ Sends the given string to the running process as if it was typed \
+        into the keyboard """
+        
         self.process.send(command)
 
     def killConsole(self):
         """ Kills the console (forcibly) """
         self.process.sendcontrol('c')
-        self.process.close(True) # Calls close() with force set to true
+        self.process.close(True) # Calls close() with 'force' set to true
         self.isRunning = False
 
     def isAlive(self):
         """ Passthrough for pexpect isalive() method. """
-        return self.process.isalive()
+        try:
+            toReturn = self.process.isalive()
+        except AttributeError:
+            toReturn = False
+        # Why the try/except?
+        # Well, until the start() method is run on a given procControl object,
+        # there isn't actually a process object associated with a given procControl
+        # object. It used to be that the "isRunning" variable would just be set
+        # to False and wouldn't ever touch the process object (at least till it
+        # was started, in which case it'd be switched to True). However, the
+        # isRunning variable only kept track of what the mode that had been set
+        # on the process, not the processes actuall status. Thus, the program
+        # running inside the process might have crashed while running, but the
+        # isRunning variable would still be marked as "True".
+        # By accessing the more 'native' method, we're able to know a lot more!
+
+        return toReturn
 
 class controlBoard(object):
     """ Meta-class for controlling multiple procControl objects.
@@ -134,7 +147,7 @@ class controlBoard(object):
         """ Initializes a new procControl object with the given name and script,\
          and stores it in the dictionary of procControl objects. """
 
-        # Adds new dictionary entry with
+        # Adds new dictionary entry with the processName as the key
         try: 
             if self.processGroup[processName]:
                 return "a process with that name already exists"
@@ -165,7 +178,7 @@ class controlBoard(object):
 
         j = []
 
-        print " == listProcess() ==\n\t"+self.processGroup.keys()
+        print " == listProcess() ==\n\t"+str(self.processGroup.keys())
 
         for keys in self.processGroup.keys():
             j.append(keys)
@@ -178,7 +191,7 @@ class controlBoard(object):
         infoDict = {}
 
         print " == getProcessInfo() ==\n\t"+processName
-        print "\t processGroup.keys():"+self.processGroup.keys()
+        print "\t processGroup.keys():"+str(self.processGroup.keys())
 
         if processName in self.processGroup.keys():
             refProcess = self.processGroup[processName]
@@ -246,6 +259,9 @@ class controlBoard(object):
                 toReturn = refProcess.recentOutput()
             else:
                 toReturn = "process not running"
+            if not toReturn:
+                toReturn = "Process has not output anything yet.\n"
+                toReturn += "Try sending a command of some kind."
 
         elif operation == "updateOutput":
             refProcess.totalConsoleOut()

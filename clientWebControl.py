@@ -103,7 +103,9 @@ class veiledClient(object):
         toReturn = self.postMesg(self.startUrl,{'processName':processName})
 
         return toReturn
-
+    def startProcess(self, processName):
+        toReturn = self.postMesg(self.startUrl, {"processName": processName})
+        return toReturn
 
 def main():
     testUrl = "http://192.168.1.175:5000"
@@ -114,9 +116,15 @@ def main():
     for proc in info["processes"]:
         print json.loads(testClient.getOutput(proc))
 
+    pprint(testClient.startProcess("exampleBash"))
     #pprint(testClient.createProcess("bash","/bin/bash"))
     #testClient.sendCmd
 
 
+def readTest():
+    testUrl = "http://192.168.1.175:5000"
+    testClient = veiledClient(testUrl)
 
+    print testClient.getOutput('exampleBash')
 main()
+readTest()
