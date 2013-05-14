@@ -2,7 +2,7 @@
     [
         {
             "name" : "tf2TestServer",
-            "scriptPath" : "/home/ubuntu/hlds.old/tf2Server/orangebox/launchTf2Server.sh",
+            "scriptPath" : "/home/ubuntu/hlds/tf2Server/launchTf2Server.sh",
             "autoStart" : 1
         },
         {
@@ -13,6 +13,6 @@
     ],
     {
         "username" : "user",
-        "password" : "superpassword"
+        "password" : "correcthorsebatterystaple"
     }
 ]
