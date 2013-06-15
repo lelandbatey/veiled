@@ -54,7 +54,7 @@ class procControl(object):
         
         self.isRunning = True # Nice little flag to keep track of whether the program is running or not.
 
-# Alright, this below little snippet of code is actually PURE GENIUS. Full disclosure, I did in no way write it.
+# Alright, this below little snippet of code is actually PURE GENIUS. Full disclosure, I did in no way write it. This is where it originates : http://stackoverflow.com/questions/375427/non-blocking-read-on-a-subprocess-pipe-in-python
 #   Here's how it works:
 #       It gives out.readline to iter() and asks for it to create an iterable.
 #       Iter works by calling "out.readline" with no arguments. If what is returned is equal to the sentinal value, then it AUTOMATICALLY EXITS THE FOR LOOP AND CLOSES THE FILE, **silently!**
@@ -63,7 +63,7 @@ class procControl(object):
     def enqueue_output(self, out, queue):
         #try:
         for line in iter(out.readline, b''):
-            queue.put(line)
+            # queue.put(line)
             self.newestOut.append(line)
             
         out.close()
