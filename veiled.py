@@ -2,8 +2,6 @@ import pexpect
 from Queue import Queue, Empty
 from threading import Thread
 from collections import deque
-#from pprint import pprint
-#from time import sleep
 import os
 
 
@@ -13,7 +11,8 @@ class procControl(object):
         super(procControl, self).__init__() # <-- I don't quite get this :/
         self.scriptName = scriptName
 
-        # If we where passed an absoloute path to the file to run, then we set up self.cwd to be the directory which the script is inside.
+        # If we where passed an absoloute path to the file to run, then we set
+        # up self.cwd to be the directory which the script is inside.
         if "/" in self.scriptName:
             self.cwd = self.scriptName.split("/")[:-1]
             self.cwd = "/".join(self.cwd)
@@ -21,36 +20,74 @@ class procControl(object):
             self.cwd = os.getcwd()
 
         # Checking the script location, and handling appropriately:
-            # This is assuming that the script name contains no other path info. If it doesn't have a path, then it's run from the current working directory, the same one that webControl.py is running from.
+        # This is assuming that the script name contains no other path info. If
+        # it doesn't have a path, then it's run from the current working
+        # directory, the same one that webControl.py is running from.
         if "/" not in self.scriptName:
             self.scriptName = "./"+self.scriptName
 
 
         self.isRunning = False
-        
+
     def start(self):
-        """Starts up the script as a pexpect object, then creating a thread to \
-        perpetualy read the output of the process running in pexpect and \
+        """Starts up the script as a pexpect object, then creating a thread to
+        perpetualy read the output of the process running in pexpect and
         enqueueing it into our queue of output (self.outQueue). """
 
         self.cmdOut = ""
 
-        # To properly set the cwd, it needs to be passed into spawn() with all the other variables
+        # To properly set the cwd, it needs to be passed into spawn() with all
+        # the other variables
 
-        self.process = pexpect.spawn(self.scriptName,[],10000000,2000,None,None,self.cwd) # These seemingly arbitrarty variables are the default variables for spawn(), and are included so that we can pass in the current working directory properly. Actually, the '10000000' is the timeout, which is redundantly set below as well.
-        self.process.logfile = file("logOut.log",'w')
+        # These seemingly arbitrarty variables are the default variables for
+        # spawn(), and are included so that we can pass in the current working
+        # directory properly. Actually, the '10000000' is the timeout, which is
+        # redundantly set below as well.
+        self.process = pexpect.spawn(self.scriptName, [], 10000000, 2000, None, None, self.cwd)
+        self.process.logfile = file("logOut.log", 'w')
 
-        #self.process.cwd = self.cwd
         print "!! start() !!\n\t"+self.process.cwd
-        self.process.timeout = 10000000 # This means that trying to read() from pexpect.spawn will block forever (technically ten million seconds, which is about 115 days or till there is more input). However, since we are using a separate thread that can afford to block forever, we don't care. In fact, we want it to block forever!
+        # This means that trying to read() from pexpect.spawn will block
+        # forever (technically ten million seconds, which is about 115 days or
+        # till there is more input). However, since we are using a separate
+        # thread that can afford to block forever, we don't care. In fact, we
+        # want it to block forever!
+        self.process.timeout = 10000000
 
         self.outQueue = Queue()
 
-        self.newestOut = deque(maxlen=150) # A deque allows us to have a "tickertape" style interface that is composed only of the most recent output from the loop generator.
-        
+        # A deque allows us to have a "tickertape" style interface that is
+        # composed only of the most recent output from the loop generator.
+        self.newestOut = deque(maxlen=150)
+
         self.procThread = Thread(target=self.enqueue_output, args=(self.process, self.outQueue))
-        self.procThread.daemon = True # When the program dies, our thread dies as well.
+        # When the program dies, our thread dies as well.
+        self.procThread.daemon = True
         self.procThread.start()
+<<<<<<< HEAD
+
+        # Nice little flag to keep track of whether the program is running or
+        # not.
+        self.isRunning = True
+
+# Alright, this below little snippet of code is actually PURE GENIUS. Full
+# disclosure, I did in no way write it. This is where it originates :
+#    http://stackoverflow.com/questions/375427/non-blocking-read-on-a-subprocess-pipe-in-python
+#
+#     Here's how it works:
+#         It gives out.readline to iter() and asks for it to create an
+#         iterable.
+#
+#         Iter works by calling "out.readline" with no arguments. If what is
+#         returned is equal to the sentinal value, then it AUTOMATICALLY EXITS
+#         THE FOR LOOP AND CLOSES THE FILE, **silently!**
+#
+#         What's so cool about this is that it lets us spin off a thread that
+#         can read this file at whatever speed it wants, and it just silently
+#         handles adding new stuff to the queue. If there is nothing in the
+#         file to read, it handles that gracefully as well. It's just a
+#         wonderfully designed, silent little perpetual reader!
+=======
         
         self.isRunning = True # Nice little flag to keep track of whether the program is running or not.
 
@@ -60,22 +97,24 @@ class procControl(object):
 #       Iter works by calling "out.readline" with no arguments. If what is returned is equal to the sentinal value, then it AUTOMATICALLY EXITS THE FOR LOOP AND CLOSES THE FILE, **silently!**
 #       
 #       What's so cool about this is that it lets us spin off a thread that can read this file at whatever speed it wants, and it just silently handles adding new stuff to the queue. If there is nothing in the file to read, it handles that gracefully as well. It's just a wonderfully designed, silent little perpetual reader!
+>>>>>>> 210427dae31d444f91adff88baaaf2b5ec1b5caa
     def enqueue_output(self, out, queue):
         #try:
         for line in iter(out.readline, b''):
             # queue.put(line)
             self.newestOut.append(line)
-            
+
         out.close()
-        
 
     def getOut(self):
-        """ Returns all new output from the process, if any. 
+        """ Returns all new output from the process, if any.
 
-        Additionally, this advances the state of the self.cmdOut, updating it \
+        Additionally, this advances the state of the self.cmdOut, updating it
         with the latest information."""
-    #   Returns everything that the process has spit out to the command line since the last time you called getConsoleOut()
-        
+
+        # Returns everything that the process has spit out to the command line
+        # since the last time you called getConsoleOut()
+
         toReturn = ""
         while True:
             try:
@@ -87,13 +126,13 @@ class procControl(object):
         return toReturn
 
     def totalConsoleOut(self):
-        """ Returns all the output of the console since the start() method was \
-        called, but does not include the latests output of the console that has \
+        """ Returns all the output of the console since the start() method was
+        called, but does not include the latests output of the console that has
         not been called via getOut() """
         return self.cmdOut
 
     def recentOutput(self):
-        """ Returns a string of the contents of the newestOut deque() object. \
+        """ Returns a string of the contents of the newestOut deque() object.
         Use this for getting the most recent stuff as output. """
         toReturn = ""
 
@@ -103,9 +142,9 @@ class procControl(object):
         return toReturn
 
     def sendCommand(self, command):
-        """ Sends the given string to the running process as if it was typed \
+        """ Sends the given string to the running process as if it was typed
         into the keyboard """
-        
+
         self.process.send(command)
 
     def killConsole(self):
@@ -137,24 +176,23 @@ class procControl(object):
 class controlBoard(object):
     """ Meta-class for controlling multiple procControl objects.
 
-    Named after the large audio mixers seen at concerts, allowing you to control\
+    Named after the large audio mixers seen at concerts, allowing you to control
     and ajust all sorts of different devices from one huge, cool looking place."""
     def __init__(self):
-        #super controlBoard, self).__init__() # <- I just don't know what that's for :/
         self.processGroup = {}
 
     def initController(self, proccesName, scriptName):
-        """ Initializes a new procControl object with the given name and script,\
+        """ Initializes a new procControl object with the given name and script,
          and stores it in the dictionary of procControl objects. """
 
         # Adds new dictionary entry with the processName as the key
-        try: 
+        try:
             if self.processGroup[processName]:
                 return "a process with that name already exists"
         except: # if no process with the given name exists, then:
             self.processGroup[proccesName] = procControl(scriptName)
             # Creates a new entry in the dictionary which keeps track of our processes
-            # with the 'key' being the given name of the process and the value 
+            # with the 'key' being the given name of the process and the value
             # being the procControl object.
 
         return "process controler successfully created"
@@ -174,7 +212,8 @@ class controlBoard(object):
 # Returns a list of strings, with each string being one of the names of the processes being run.
 # Returns ALL process names
     def listProcess(self):
-        """Returns a list all the names of processes for the current instance of the controlBoard class"""
+        """Returns a list all the names of processes for the current instance
+        of the controlBoard class"""
 
         j = []
 
@@ -185,8 +224,9 @@ class controlBoard(object):
 
         return j
 
-    def getProcessInfo(self,processName):
-        """ Returns a dictionary of the state of various attributes of the given procControl object. """
+    def getProcessInfo(self, processName):
+        """ Returns a dictionary of the state of various attributes of the
+        given procControl object. """
 
         infoDict = {}
 
@@ -205,11 +245,11 @@ class controlBoard(object):
         return infoDict
 
     def processStart(self, processName):
-        """ If a given procControl class is not running, it starts it. If it's \
-        already running, then it returns a string "already running". 
+        """ If a given procControl class is not running, it starts it. If it's
+        already running, then it returns a string "already running".
 
-        This also assumes that it's being passed a valid procControl name, \
-        since this would normally be accessed through the processOperator\
+        This also assumes that it's being passed a valid procControl name,
+        since this would normally be accessed through the processOperator
          class which checks if the given name is valid already. """
 
         toReturn = 'an error of some type occured while starting the proccess'
@@ -218,11 +258,9 @@ class controlBoard(object):
 
         if refProcess.isRunning:
             toReturn = "process already running.\n"
-            #print "process was already running; couldn't start"
         else:
             refProcess.start()
             toReturn = "process has been started.\n"
-            #print "process has been started!"
 
         return toReturn
 
@@ -230,8 +268,11 @@ class controlBoard(object):
     def processOperator(self, processName, operation, command=""):
         """ Main method/wrapper for procControl
 
-        Acts as a router for commands, sending the given command to the correct process.
-        Please note: this very much may not be the right way to do this. However, it is a way that works."""
+        Acts as a router for commands, sending the given command to the correct
+        process.
+
+        Please note: this very much may not be the right way to do this.
+        However, it is a way that works."""
         toReturn = True
 
         print " == processOperator =="
@@ -265,12 +306,12 @@ class controlBoard(object):
 
         elif operation == "updateOutput":
             refProcess.totalConsoleOut()
-            
+
         elif operation == "status":
             toReturn = self.getProcessInfo(processName)
-        
+
         elif operation == "createProcess":
-            toReturn = self.initController(processName,command)
+            toReturn = self.initController(processName, command)
 
         else:
             toReturn = "no operation of that name"
