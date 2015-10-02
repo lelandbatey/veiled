@@ -8,27 +8,20 @@ import os
 class procControl(object):
     """Wrapper for pexpect, providing useful methods for controlling terminal
     applications"""
-    def __init__(self, scriptName, procType=""):
-        super(procControl, self).__init__() # <-- I don't quite get this :/
-        self.scriptName = scriptName
+    def __init__(self, script_name, procType=""):
+        self.script_name = script_name
 
         # If we where passed an absoloute path to the file to run, then we set
         # up self.cwd to be the directory which the script is inside.
-        if "/" in self.scriptName:
-            self.cwd = self.scriptName.split("/")[:-1]
+        if "/" in self.script_name:
+            self.cwd = self.script_name.split("/")[:-1]
             self.cwd = "/".join(self.cwd)
         else:
             self.cwd = os.getcwd()
+            # In this case, it's a bare program name
+            self.script_name = "./"+self.script_name
 
-        # Checking the script location, and handling appropriately:
-        # This is assuming that the script name contains no other path info. If
-        # it doesn't have a path, then it's run from the current working
-        # directory, the same one that webControl.py is running from.
-        if "/" not in self.scriptName:
-            self.scriptName = "./"+self.scriptName
-
-
-        self.isRunning = False
+        self.is_running = False
 
     def start(self):
         """Starts up the script as a pexpect object, then creating a thread to
@@ -44,7 +37,7 @@ class procControl(object):
         # spawn(), and are included so that we can pass in the current working
         # directory properly. Actually, the '10000000' is the timeout, which is
         # redundantly set below as well.
-        self.process = pexpect.spawn(self.scriptName, [], 10000000,
+        self.process = pexpect.spawn(self.script_name, [], 10000000,
                                      2000, None, None, self.cwd)
         self.process.logfile = file("logOut.log", 'w')
 
@@ -62,15 +55,15 @@ class procControl(object):
         # composed only of the most recent output from the loop generator.
         self.newestOut = deque(maxlen=150)
 
-        self.procThread = Thread(target=self.enqueue_output,
+        self.process_thread = Thread(target=self.enqueue_output,
                                  args=(self.process, self.outQueue))
         # When the program dies, our thread dies as well.
-        self.procThread.daemon = True
-        self.procThread.start()
+        self.process_thread.daemon = True
+        self.process_thread.start()
 
         # Nice little flag to keep track of whether the program is running or
         # not.
-        self.isRunning = True
+        self.is_running = True
 
 # Alright, this below little snippet of code is actually PURE GENIUS. Full
 # disclosure, I did in no way write it. This is where it originates :
@@ -140,7 +133,7 @@ class procControl(object):
         """ Kills the console (forcibly) """
         self.process.sendcontrol('c')
         self.process.close(True) # Calls close() with 'force' set to true
-        self.isRunning = False
+        self.is_running = False
 
     def isAlive(self):
         """ Passthrough for pexpect isalive() method. """
@@ -151,13 +144,13 @@ class procControl(object):
         # Why the try/except?
         # Well, until the start() method is run on a given procControl object,
         # there isn't actually a process object associated with a given
-        # procControl object. It used to be that the "isRunning" variable would
+        # procControl object. It used to be that the "is_running" variable would
         # just be set to False and wouldn't ever touch the process object (at
         # least till it was started, in which case it'd be switched to True).
-        # However, the isRunning variable only kept track of what the mode that
+        # However, the is_running variable only kept track of what the mode that
         # had been set on the process, not the processes actuall status. Thus,
         # the program running inside the process might have crashed while
-        # running, but the isRunning variable would still be marked as "True".
+        # running, but the is_running variable would still be marked as "True".
         # By accessing the more 'native' method, we're able to know a lot more!
 
         return toReturn
@@ -166,13 +159,13 @@ class controlBoard(object):
     """ Meta-class for controlling multiple procControl objects.
 
     Named after the large audio mixers seen at concerts, allowing you to
-    control and ajust all sorts of different devices from one huge, cool
+    control and adjust all sorts of different devices from one huge, cool
     looking place."""
 
     def __init__(self):
         self.processGroup = {}
 
-    def initController(self, proccesName, scriptName):
+    def initController(self, proccesName, script_name):
         """ Initializes a new procControl object with the given name and script,
          and stores it in the dictionary of procControl objects. """
 
@@ -181,7 +174,7 @@ class controlBoard(object):
             if self.processGroup[processName]:
                 return "a process with that name already exists"
         except: # if no process with the given name exists, then:
-            self.processGroup[proccesName] = procControl(scriptName)
+            self.processGroup[proccesName] = procControl(script_name)
             # Creates a new entry in the dictionary which keeps track of our
             # processes
             # with the 'key' being the given name of the process and the value
@@ -226,7 +219,7 @@ class controlBoard(object):
             refProcess = self.processGroup[processName]
             infoDict["name"] = processName
             infoDict["cwd"] = refProcess.cwd
-            infoDict["scriptName"] = refProcess.scriptName
+            infoDict["script_name"] = refProcess.script_name
             infoDict["running"] = refProcess.isAlive()
         else:
             return False
@@ -245,7 +238,7 @@ class controlBoard(object):
 
         refProcess = self.processGroup[processName]
 
-        if refProcess.isRunning:
+        if refProcess.is_running:
             toReturn = "process already running.\n"
         else:
             refProcess.start()
@@ -285,7 +278,7 @@ class controlBoard(object):
             refProcess.sendCommand(command+"\n")
 
         elif operation == "getOutput":
-            if refProcess.isRunning:
+            if refProcess.is_running:
                 toReturn = refProcess.recentOutput()
             else:
                 toReturn = "process not running"

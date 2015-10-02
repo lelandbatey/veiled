@@ -1,26 +1,17 @@
 from flask import Flask, request, json, render_template
 from flask.ext.basicauth import BasicAuth
-import pexpect
 from Queue import Queue, Empty
 from threading import Thread
-#from pprint import pprint
-#from time import sleep
+import pexpect
+import veiled
 import os
-from veiled import *
 
-# In this feild, have the 
 configuration_file = "config.json"
 
-
 app = Flask(__name__)
-### Reads Configuration File ###
-    # Configuration file is just a json file. The "key" must be "scriptPath" with the value being a string that is the path to the script (either absolute or relative to the instance of webControl)
-
-# configFile = open('config.json', 'r')
-# configJson = json.loads(configFile.read())
 
 
-bigBoard = controlBoard()
+bigBoard = veiled.controlBoard()
 
 def loadConfig(configFile = "config.json"):
     configFile = open(configFile, "r")
@@ -40,14 +31,6 @@ basic_auth = BasicAuth(app)
 
 loadConfig(configuration_file)
 
-
-#remoteBeta = procControl("run_tf2_comp_exitance.sh")
-#remoteBeta.start()
-
-
-# bigBoard = controlBoard()
-# bigBoard.initController("testTf2Server", scriptPath)
-# bigBoard.processOperator("testTf2Server", "start")
 
 def genericRequestHandler(request, operation):
     """ Performs more generic handling of requests received at access points.
@@ -128,7 +111,7 @@ def start():
     #     toReturn = "Already running\n"
 
 @app.route('/list')
-def listProcs():
+def list_processes():
     return json.dumps(bigBoard.listProcess())
 
 
@@ -141,7 +124,7 @@ def status():
 
 
 @app.route('/cmd/', methods = ['POST'])
-def apiCmd():
+def api_cmd():
     # Requires:
     # { "processName" : "theNameOfTheProcess",
     #   "cmd" : "theCommandToBeSentToTheProcess" }
@@ -174,7 +157,7 @@ def apiCmd():
 #     }
 
 @app.route("/createProcess", methods = ['POST'])
-def createProcess():
+def create_process():
     pass
     toReturn = genericRequestHandler(request, "createProcess")
     return toReturn
