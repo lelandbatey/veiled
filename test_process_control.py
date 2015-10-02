@@ -7,6 +7,7 @@ from __future__ import print_function
 import process_control
 import unittest
 import os.path
+import time
 import os
 
 class MockProcess(object):
@@ -20,8 +21,8 @@ class MockProcess(object):
     def close(self):
         """Fakes the close method"""
         return None
-    def __call__(self):
-        """Makes callable"""
+    def readline(self):
+        """Fake readline method"""
         if self.count < len(self.mlist):
             rv = self.mlist[self.count]
             self.count += 1
@@ -38,6 +39,7 @@ class ProcControlTests(unittest.TestCase):
         self.fname = 'test_script.sh'
         with open(self.fname, 'w') as tmp_file: 
             tmp_file.write('#!/bin/bash\necho "this is a test command"')
+        os.chmod(self.fname, 0755)
     
     def tearDown(self):
         """Cleanup after each test."""
@@ -51,15 +53,33 @@ class ProcControlTests(unittest.TestCase):
         self.assertEqual(pro_co.read_queue, process_control.deque(maxlen=150))
         self.assertEqual(pro_co.process, None)
 
-    def test_enqueue_output(self):
-        """Ensure enqueue functions properly."""
+    def test_start(self):
+        """Test for correct process start."""
         pro_co = process_control.ProcessControl(self.fname)
-        mock_process = MockProcess(['zero', 'one', 'two'])
+        pro_co.start()
+        self.assertTrue(isinstance(pro_co.process,
+                                   process_control.pexpect.spawn))
+        self.assertTrue(isinstance(pro_co.read_thread, process_control.Thread))
+        #print(pro_co.read_queue)
+        #print(pro_co.process.isalive())
+        #print(pro_co.read_thread)
+
+    def test_enqueue_output(self):
+        """Ensure enqueue writes proper tuple for read in results."""
+        pro_co = process_control.ProcessControl(self.fname)
+        s_list = ['zero', 'one', 'two']
+        mock_process = MockProcess(s_list)
         mock_queue = []
+
         pro_co.process = mock_process
         pro_co.read_queue = mock_queue
         pro_co.enqueue_output()
-        print(mock_queue)
+
+        for idx, val, in enumerate(s_list):
+            result_idx, result_val = mock_queue[idx]
+            self.assertEqual(result_idx, idx)
+            self.assertEqual(result_val, val)
+
 
 if __name__ == '__main__':
 	unittest.main()
