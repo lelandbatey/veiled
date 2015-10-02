@@ -6,8 +6,9 @@ import os
 
 
 class procControl(object):
-    """ Wrapper for pexpect, providing useful methods for controlling terminal applications """
-    def __init__(self, scriptName, procType = ""):
+    """Wrapper for pexpect, providing useful methods for controlling terminal
+    applications"""
+    def __init__(self, scriptName, procType=""):
         super(procControl, self).__init__() # <-- I don't quite get this :/
         self.scriptName = scriptName
 
@@ -43,7 +44,8 @@ class procControl(object):
         # spawn(), and are included so that we can pass in the current working
         # directory properly. Actually, the '10000000' is the timeout, which is
         # redundantly set below as well.
-        self.process = pexpect.spawn(self.scriptName, [], 10000000, 2000, None, None, self.cwd)
+        self.process = pexpect.spawn(self.scriptName, [], 10000000,
+                                     2000, None, None, self.cwd)
         self.process.logfile = file("logOut.log", 'w')
 
         print "!! start() !!\n\t"+self.process.cwd
@@ -60,11 +62,11 @@ class procControl(object):
         # composed only of the most recent output from the loop generator.
         self.newestOut = deque(maxlen=150)
 
-        self.procThread = Thread(target=self.enqueue_output, args=(self.process, self.outQueue))
+        self.procThread = Thread(target=self.enqueue_output,
+                                 args=(self.process, self.outQueue))
         # When the program dies, our thread dies as well.
         self.procThread.daemon = True
         self.procThread.start()
-<<<<<<< HEAD
 
         # Nice little flag to keep track of whether the program is running or
         # not.
@@ -72,7 +74,7 @@ class procControl(object):
 
 # Alright, this below little snippet of code is actually PURE GENIUS. Full
 # disclosure, I did in no way write it. This is where it originates :
-#    http://stackoverflow.com/questions/375427/non-blocking-read-on-a-subprocess-pipe-in-python
+#    http://stackoverflow.com/a/4896288
 #
 #     Here's how it works:
 #         It gives out.readline to iter() and asks for it to create an
@@ -87,17 +89,6 @@ class procControl(object):
 #         handles adding new stuff to the queue. If there is nothing in the
 #         file to read, it handles that gracefully as well. It's just a
 #         wonderfully designed, silent little perpetual reader!
-=======
-        
-        self.isRunning = True # Nice little flag to keep track of whether the program is running or not.
-
-# Alright, this below little snippet of code is actually PURE GENIUS. Full disclosure, I did in no way write it. This is where it originates : http://stackoverflow.com/questions/375427/non-blocking-read-on-a-subprocess-pipe-in-python
-#   Here's how it works:
-#       It gives out.readline to iter() and asks for it to create an iterable.
-#       Iter works by calling "out.readline" with no arguments. If what is returned is equal to the sentinal value, then it AUTOMATICALLY EXITS THE FOR LOOP AND CLOSES THE FILE, **silently!**
-#       
-#       What's so cool about this is that it lets us spin off a thread that can read this file at whatever speed it wants, and it just silently handles adding new stuff to the queue. If there is nothing in the file to read, it handles that gracefully as well. It's just a wonderfully designed, silent little perpetual reader!
->>>>>>> 210427dae31d444f91adff88baaaf2b5ec1b5caa
     def enqueue_output(self, out, queue):
         #try:
         for line in iter(out.readline, b''):
@@ -135,10 +126,8 @@ class procControl(object):
         """ Returns a string of the contents of the newestOut deque() object.
         Use this for getting the most recent stuff as output. """
         toReturn = ""
-
         for i in self.newestOut:
-            toReturn+=i
-
+            toReturn += i
         return toReturn
 
     def sendCommand(self, command):
@@ -161,14 +150,14 @@ class procControl(object):
             toReturn = False
         # Why the try/except?
         # Well, until the start() method is run on a given procControl object,
-        # there isn't actually a process object associated with a given procControl
-        # object. It used to be that the "isRunning" variable would just be set
-        # to False and wouldn't ever touch the process object (at least till it
-        # was started, in which case it'd be switched to True). However, the
-        # isRunning variable only kept track of what the mode that had been set
-        # on the process, not the processes actuall status. Thus, the program
-        # running inside the process might have crashed while running, but the
-        # isRunning variable would still be marked as "True".
+        # there isn't actually a process object associated with a given
+        # procControl object. It used to be that the "isRunning" variable would
+        # just be set to False and wouldn't ever touch the process object (at
+        # least till it was started, in which case it'd be switched to True).
+        # However, the isRunning variable only kept track of what the mode that
+        # had been set on the process, not the processes actuall status. Thus,
+        # the program running inside the process might have crashed while
+        # running, but the isRunning variable would still be marked as "True".
         # By accessing the more 'native' method, we're able to know a lot more!
 
         return toReturn
@@ -176,8 +165,10 @@ class procControl(object):
 class controlBoard(object):
     """ Meta-class for controlling multiple procControl objects.
 
-    Named after the large audio mixers seen at concerts, allowing you to control
-    and ajust all sorts of different devices from one huge, cool looking place."""
+    Named after the large audio mixers seen at concerts, allowing you to
+    control and ajust all sorts of different devices from one huge, cool
+    looking place."""
+
     def __init__(self):
         self.processGroup = {}
 
@@ -191,7 +182,8 @@ class controlBoard(object):
                 return "a process with that name already exists"
         except: # if no process with the given name exists, then:
             self.processGroup[proccesName] = procControl(scriptName)
-            # Creates a new entry in the dictionary which keeps track of our processes
+            # Creates a new entry in the dictionary which keeps track of our
+            # processes
             # with the 'key' being the given name of the process and the value
             # being the procControl object.
 
@@ -208,9 +200,6 @@ class controlBoard(object):
 
         process.sendCommand(command)
 
-##### ListProcess #####
-# Returns a list of strings, with each string being one of the names of the processes being run.
-# Returns ALL process names
     def listProcess(self):
         """Returns a list all the names of processes for the current instance
         of the controlBoard class"""
