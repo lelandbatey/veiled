@@ -15,6 +15,7 @@ class MockProcess(object):
     def __init__(self, mlist):
         self.count = 0
         self.mlist = mlist
+        self.commands = []
     def append(self, obj):
         """Fakes the append method"""
         self.mlist.append(obj)
@@ -30,6 +31,9 @@ class MockProcess(object):
             return ret_val
         else:
             return b''
+    def send(self, command):
+        """Fakes the `send` method"""
+        self.commands.append(command)
 
 
 class ProcControlTests(unittest.TestCase):
@@ -103,6 +107,17 @@ for x in $(seq 0 200); do echo "$x"; done;''')
             ret_len = len(ret_len)
             self.assertEqual(good_len, ret_len)
             self.assertEqual(good_idx, ret_idx)
+
+    def test_send(self):
+        """Test sending a command to a process."""
+        pro_co = process_control.ProcessControl(self.fname)
+        s_list = ['zero', 'one', 'two']
+        mock_process = MockProcess(s_list)
+        pro_co.process = mock_process
+
+        pro_co.send('test command')
+
+        self.assertEqual(['test command'], mock_process.commands)
 
 
 if __name__ == '__main__':

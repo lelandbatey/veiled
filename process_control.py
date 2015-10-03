@@ -91,6 +91,10 @@ class ProcessControl(object):
             mid_id = after_idx - first_id
             contents = join_chunks(islice(self.read_queue, mid_id, decklen))
             return contents, last_id
+    def send(self, command):
+        """Writes the given command to stdin of the process as if it where
+        typed."""
+        self.process.send(command)
 
 
 
