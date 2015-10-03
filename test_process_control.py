@@ -12,7 +12,7 @@ import os
 
 class MockProcess(object):
     """A mocked up version of a pexpect.spawn"""
-    def __init__(self, mlist=[]):
+    def __init__(self, mlist):
         self.count = 0
         self.mlist = mlist
     def append(self, obj):
@@ -20,13 +20,14 @@ class MockProcess(object):
         self.mlist.append(obj)
     def close(self):
         """Fakes the close method"""
+        self = self
         return None
     def readline(self):
         """Fake readline method"""
         if self.count < len(self.mlist):
-            rv = self.mlist[self.count]
+            ret_val = self.mlist[self.count]
             self.count += 1
-            return rv
+            return ret_val
         else:
             return b''
 
@@ -37,10 +38,11 @@ class ProcControlTests(unittest.TestCase):
     def setUp(self):
         """Setup to be run for every test."""
         self.fname = 'test_script.sh'
-        with open(self.fname, 'w') as tmp_file: 
-            tmp_file.write('#!/bin/bash\necho "this is a test command"')
+        with open(self.fname, 'w') as tmp_file:
+            tmp_file.write('''#!/bin/bash
+for x in $(seq 0 200); do echo "$x"; done;''')
         os.chmod(self.fname, 0755)
-    
+
     def tearDown(self):
         """Cleanup after each test."""
         os.remove(self.fname)
@@ -60,9 +62,15 @@ class ProcControlTests(unittest.TestCase):
         self.assertTrue(isinstance(pro_co.process,
                                    process_control.pexpect.spawn))
         self.assertTrue(isinstance(pro_co.read_thread, process_control.Thread))
-        #print(pro_co.read_queue)
-        #print(pro_co.process.isalive())
-        #print(pro_co.read_thread)
+
+    def test_stop(self):
+        """Test for correct process stop."""
+        pro_co = process_control.ProcessControl(self.fname)
+        pro_co.start()
+        pro_co.stop()
+        self.assertTrue(pro_co.process == None)
+        self.assertTrue(pro_co.read_thread == None)
+        self.assertTrue(len(pro_co.read_queue) == 0)
 
     def test_enqueue_output(self):
         """Ensure enqueue writes proper tuple for read in results."""
@@ -80,6 +88,22 @@ class ProcControlTests(unittest.TestCase):
             self.assertEqual(result_idx, idx)
             self.assertEqual(result_val, val)
 
+    def test_read(self):
+        """Test reading from process at different positions"""
+        pro_co = process_control.ProcessControl(self.fname)
+        pro_co.start()
+        time.sleep(0.01)
+        call_vals = ((None, 701, 200),
+                     (200,  0,   200),
+                     (195,  30,  200))
+
+        for call in call_vals:
+            in_val, good_len, good_idx = call
+            ret_len, ret_idx = pro_co.read(after_idx=in_val)
+            ret_len = len(ret_len)
+            self.assertEqual(good_len, ret_len)
+            self.assertEqual(good_idx, ret_idx)
+
 
 if __name__ == '__main__':
-	unittest.main()
+    unittest.main()

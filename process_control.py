@@ -6,6 +6,7 @@
 from __future__ import print_function
 from collections import deque
 from threading import Thread
+from itertools import islice
 from os.path import abspath
 import pexpect
 import time
@@ -25,6 +26,7 @@ class ProcessControl(object):
         else:
             self.cwd = os.getcwd()
         self.read_queue = deque(maxlen=150)
+        self.read_thread = None
         self.process = None
 
     def start(self):
@@ -43,34 +45,52 @@ class ProcessControl(object):
         underlying objects."""
         if not self.process:
             return
-        self.process.sendcontrol('c')
-        time.sleep(0.1)
         self.process.close(True)
         del self.process
         self.process = None
         time.sleep(0.01)
 
-        if not self.read_thread.is_alive():
-            del self.read_thread
-            self.read_thread = None
-        else:
-            time.sleep(0.25)
-            if self.read_thread.is_alive():
-                raise RuntimeError("Read thread is not dying after process ends.")
-            else:
-                del self.read_thread
-                self.read_thread = None
+        del self.read_thread
+        self.read_thread = None
         self.read_queue.clear()
-
 
     def enqueue_output(self):
         """Perpetually reads output of process and places into the read_queue.
         Intended to be run in a separate thread."""
         read_id = long(0)
-        for line in iter(self.process.readline, b''):
-            self.read_queue.append((read_id, line))
-            read_id += 1
-        self.process.close()
+        try:
+            for line in iter(self.process.readline, b''):
+                self.read_queue.append((read_id, line))
+                read_id += 1
+        except Exception:
+            pass
+
+    def read(self, after_idx=None):
+        """Read from the process output buffer.
+
+        If `after_idx` is not given, returns entire output buffer and the
+        latest chunk_index. If after_idx is provided, returns all chunks
+        that've come after `after_idx` as well as the latest chunk_index."""
+
+        def join_chunks(chunks):
+            """Joins 'chunks', the body of tuples written to the read_queue"""
+            str_chunks = [c[1] for c in chunks]
+            return "".join(str_chunks)
+        first_id = self.read_queue[0][0]
+        last_id = self.read_queue[-1][0]
+        decklen = len(self.read_queue)
+
+        if after_idx == None:
+            return join_chunks(islice(self.read_queue, decklen)), last_id
+
+        if after_idx < first_id:
+            return join_chunks(islice(self.read_queue, decklen)), last_id
+        elif after_idx >= last_id:
+            return '', last_id
+        else:
+            mid_id = after_idx - first_id
+            contents = join_chunks(islice(self.read_queue, mid_id, decklen))
+            return contents, last_id
 
 
 
