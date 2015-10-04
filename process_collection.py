@@ -13,21 +13,36 @@ class ProcessCollection(object):
     """Contains several ProcessControl objects, with methods for their
     maniplulation."""
     def __init__(self):
-        self.processes = {}
+        self.processes = dict()
         # Done to allow tests to swap in mock classes for processes
         self.process_class = ProcessControl
+        # Allows for swaping in more deterministic pid generators in tests
+        self.pid_selector = lambda: random.randint(0, 50000)
 
     def new_process(self, command_path):
         """Create a new ProcessControl object with the given command_path."""
         process = self.process_class(command_path)
         pid = None
         while (pid == None) or (pid in self.processes.keys()):
-            pid = random.randint(0, 50000)
+            pid = self.pid_selector()
         self.processes[pid] = process
 
     def shutdown_all(self):
         """Close all processes."""
         for pid in self.processes:
             self.processes[pid].stop()
+
+    def __getitem__(self, key):
+        """Passthrough for dict-like access to self.processes"""
+        return self.processes[key]
+
+    def __setitem__(self, key, value):
+        """Passthrough for dict-like assignment to self.processes"""
+        self.processes[key] = value
+
+    def __delitem__(self, key):
+        """Special handling for deletion of self.process"""
+        self.processes[key].stop()
+        del self.processes[key]
 
 

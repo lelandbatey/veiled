@@ -97,13 +97,17 @@ class ProcessControl(object):
         typed."""
         self.process.send(command)
 
+    def isalive(self):
+        """Check if the underlying process is alive."""
+        isalive = False
+        if self.process != None and self.process.isalive():
+            isalive = True
+        return isalive
+
     def __getstate__(self):
         """Simpler representation of ProcessControl"""
-        ret_val = dict()
-        ret_val['isalive'] = False
-        if self.process != None and self.process.isalive():
-            ret_val['isalive'] = True
-        ret_val['command_path'] = str(self.command_path)
+        ret_val = {'isalive': self.isalive(),
+                   'command_path': self.command_path}
         ret_val['output'], ret_val['last_index'] = self.read()
         return ret_val
     def __setstate__(self, _):
