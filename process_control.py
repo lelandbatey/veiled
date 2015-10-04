@@ -9,6 +9,7 @@ from threading import Thread
 from itertools import islice
 from os.path import abspath
 import pexpect
+import json
 import time
 import os
 
@@ -95,6 +96,27 @@ class ProcessControl(object):
         """Writes the given command to stdin of the process as if it where
         typed."""
         self.process.send(command)
+
+    def __getstate__(self):
+        """Simpler representation of ProcessControl"""
+        ret_val = dict()
+        ret_val['isalive'] = False
+        if self.process != None and self.process.isalive():
+            ret_val['isalive'] = True
+        ret_val['command_path'] = str(self.command_path)
+        ret_val['output'], ret_val['last_index'] = self.read()
+        return ret_val
+    def __setstate__(self, _):
+        """Filler method."""
+        return
+
+    def __str__(self):
+        """String representation of ProcessControl"""
+        ret_val = self.__getstate__()
+        ret_val = json.dumps(ret_val, sort_keys=True, indent=4,
+                             separators=(',', ': '))
+        return ret_val
+
 
 
 

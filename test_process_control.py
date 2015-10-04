@@ -10,7 +10,7 @@ import os.path
 import time
 import os
 
-class MockProcess(object):
+class MockSpawn(object):
     """A mocked up version of a pexpect.spawn"""
     def __init__(self, mlist):
         self.count = 0
@@ -80,7 +80,7 @@ for x in $(seq 0 200); do echo "$x"; done;''')
         """Ensure enqueue writes proper tuple for read in results."""
         pro_co = process_control.ProcessControl(self.fname)
         s_list = ['zero', 'one', 'two']
-        mock_process = MockProcess(s_list)
+        mock_process = MockSpawn(s_list)
         mock_queue = []
 
         pro_co.process = mock_process
@@ -112,7 +112,7 @@ for x in $(seq 0 200); do echo "$x"; done;''')
         """Test sending a command to a process."""
         pro_co = process_control.ProcessControl(self.fname)
         s_list = ['zero', 'one', 'two']
-        mock_process = MockProcess(s_list)
+        mock_process = MockSpawn(s_list)
         pro_co.process = mock_process
 
         pro_co.send('test command')
