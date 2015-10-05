@@ -30,10 +30,12 @@ def root():
     """A placeholder root for now."""
     return "Mainpage"
 
+
 @APP.route('/api/processes', methods=['GET'])
 def show_processes():
     """Shows all processes"""
     return make_json_response(PROC_COL)
+
 
 @APP.route('/api/processes', methods=['POST'])
 def create_process():
@@ -45,6 +47,7 @@ def create_process():
     PROC_COL.new_process(args.command_path)
     return "Process started with command_path: '{}'".format(args.command_path)
 
+
 @APP.route('/api/processes', methods=['DELETE'])
 def halt_all_processes():
     """Runs the 'stop' method on all processes."""
@@ -52,11 +55,23 @@ def halt_all_processes():
         PROC_COL[pid].stop()
     return 'success'
 
+
 @APP.route('/api/processes/<int:pid>', methods=['GET'])
 def show_process_status(pid):
     """Returns the status of a process."""
     process = PROC_COL[pid]
     return make_json_response(process)
+
+
+@APP.route('/api/processes/<int:pid>/<int:after_idx>', methods=['GET'])
+def show_process_status(pid, after_idx):
+    """Returns the status of a process after a given index."""
+    process = PROC_COL[pid]
+    ret_val = {'isalive': process.isalive(),
+               'command_path': process.command_path}
+    ret_val['output'], ret_val['last_index'] = process.read(after_idx)
+    return make_json_response(ret_val)
+
 
 @APP.route('/api/processes/<int:pid>', methods=['PUT'])
 def toggle_process(pid):
@@ -73,10 +88,11 @@ def toggle_process(pid):
     elif args.action == 'stop':
         process.stop()
     else:
-        ret_val = "Action was neither 'start' nor 'stop'"
+        return "Action was neither 'start' nor 'stop'", 400
     ret_val = "Successfulle {}ed the process".format(args.action)
 
     return make_json_response(ret_val)
+
 
 
 if __name__ == '__main__':
