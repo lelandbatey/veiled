@@ -44,5 +44,12 @@ class ProcessCollection(object):
         """Special handling for deletion of self.process"""
         self.processes[key].stop()
         del self.processes[key]
+    def __iter__(self):
+        """Passthrough for dict-like iteration to self.processes"""
+        for key in self.processes.keys():
+            yield key
+    def __getstate__(self):
+        """Simpler representation of ProcessCollection"""
+        return self.processes
 
 

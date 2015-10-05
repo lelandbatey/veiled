@@ -73,6 +73,9 @@ class ProcessControl(object):
         latest chunk_index. If after_idx is provided, returns all chunks
         that've come after `after_idx` as well as the latest chunk_index."""
 
+        if not self.isalive() or not len(self.read_queue):
+            return "", 0
+
         def join_chunks(chunks):
             """Joins 'chunks', the body of tuples written to the read_queue"""
             str_chunks = [c[1] for c in chunks]
@@ -92,6 +95,7 @@ class ProcessControl(object):
             mid_id = after_idx - first_id
             contents = join_chunks(islice(self.read_queue, mid_id, decklen))
             return contents, last_id
+
     def send(self, command):
         """Writes the given command to stdin of the process as if it where
         typed."""

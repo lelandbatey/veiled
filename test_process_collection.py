@@ -78,6 +78,18 @@ class ProcCollectionTests(unittest.TestCase):
 
         self.assertEqual(proc.isalive(), False)
 
+    def test_iter(self):
+        """Test that iteration is properly implemented."""
+        pro_col = process_collection.ProcessCollection()
+        pro_col.process_class = MockProcControl
+        pro_col.pid_selector = auto_increment_factory()
+
+        test_path = 'test_path'
+        for _ in range(10):
+            pro_col.new_process(test_path)
+
+        self.assertEqual(sorted([x for x in pro_col]), sorted([y for y in pro_col.processes]))
+
 
 if __name__ == '__main__':
     unittest.main()
