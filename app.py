@@ -2,6 +2,7 @@
 from __future__ import print_function
 from process_collection import ProcessCollection
 from flask_restful import reqparse
+from functools import wraps
 import jsonpickle
 import flask
 import json
@@ -15,6 +16,24 @@ jsonpickle.set_encoder_options('json', sort_keys=True,
 # Declaration of the important constants for this
 APP = flask.Flask(__name__)
 PROC_COL = ProcessCollection()
+
+def validate_pid(func):
+    """Decorator that validates the given pid, then passes a valid process to
+    the actual handler.
+
+    Makes use of the convenience function `functools.wraps` which changes the
+    __name__ and __doc__ attributes of the wrapping function. Info here:
+        https://docs.python.org/2/library/functools.html#functools.wraps"""
+    @wraps(func)
+    def validator(*args):
+        """Validates the pid"""
+        pid = args[0]
+        if not pid in PROC_COL:
+            return "No process with given pid", 400
+        process = PROC_COL[pid]
+        args.append(process)
+        return func(*args)
+    return validator
 
 
 def make_json_response(obj):
@@ -57,16 +76,16 @@ def halt_all_processes():
 
 
 @APP.route('/api/processes/<int:pid>', methods=['GET'])
-def show_process_status(pid):
+@validate_pid
+def show_process_status(pid, process):
     """Returns the status of a process."""
-    process = PROC_COL[pid]
     return make_json_response(process)
 
 
 @APP.route('/api/processes/<int:pid>/<int:after_idx>', methods=['GET'])
-def show_process_status(pid, after_idx):
+@validate_pid
+def show_process_status_after_idx(pid, after_idx, process):
     """Returns the status of a process after a given index."""
-    process = PROC_COL[pid]
     ret_val = {'isalive': process.isalive(),
                'command_path': process.command_path}
     ret_val['output'], ret_val['last_index'] = process.read(after_idx)
@@ -74,9 +93,8 @@ def show_process_status(pid, after_idx):
 
 
 @APP.route('/api/processes/<int:pid>', methods=['PUT'])
-def toggle_process(pid):
+def toggle_process(pid, process):
     """Starts or stops a process by it's pid."""
-    process = PROC_COL[pid]
     parser = reqparse.RequestParser()
     parser.add_argument('action', required=True,
                         help='Either "start" or "stop" the process')
