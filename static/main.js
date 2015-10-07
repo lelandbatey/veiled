@@ -1,7 +1,8 @@
 requirejs.config({
 	baseUrl: 'static',
 	paths: {
-		jquery: '//ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery'
+		jquery: '//ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery',
+		underscore: '//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore.js'
 	}
 });
 
