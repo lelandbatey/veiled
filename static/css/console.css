@@ -1,0 +1,23 @@
+
+textarea{
+    font-family: Monaco, Menlo, Consolas, 'Courier New', monospace;
+}
+
+.box {background-color:#fff; border-color:#ddd; border-style: solid; border-width: 1px; border-radius: 4px; padding: 20px; width:100%-20px; margin-bottom:20px;}
+.box img {margin-left: auto; margin-right: auto; display: block; }
+
+#console {
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 20px;
+    font-family: Monaco, Menlo, Consolas, 'Courier New', monospace;
+    margin: 0;
+    font-size: 100%;
+    vertical-align: middle;
+    height: 810px;
+    width: 518px;
+    overflow:scroll;
+    display:inline-block;
+    overflow-x: hidden;
+    white-space: pre;
+}

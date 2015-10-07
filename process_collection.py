@@ -50,6 +50,7 @@ class ProcessCollection(object):
             yield key
     def __getstate__(self):
         """Simpler representation of ProcessCollection"""
-        return self.processes
+        ret_val = {key: self.processes[key].command_path for key in self.processes}
+        return ret_val
 
 

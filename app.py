@@ -47,7 +47,7 @@ def make_json_response(obj):
 @APP.route('/')
 def root():
     """A placeholder root for now."""
-    return "Mainpage"
+    return flask.render_template('console.html')
 
 
 @APP.route('/api/processes', methods=['GET'])
@@ -93,6 +93,7 @@ def show_process_status_after_idx(pid, after_idx, process):
 
 
 @APP.route('/api/processes/<int:pid>', methods=['PUT'])
+@validate_pid
 def toggle_process(pid, process):
     """Starts or stops a process by it's pid."""
     parser = reqparse.RequestParser()
