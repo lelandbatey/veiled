@@ -19,7 +19,7 @@ Process.prototype.read = function(){
 
 Process.prototype.send = function(command){
 	// Sends a given command to the server, return nothing
-	var sendUrl = '/api/processes/'+this.pid+'/';
+	var sendUrl = '/api/processes/'+this.pid;
 	$.ajax({
 		method: "POST",
 		url: sendUrl,
@@ -28,8 +28,7 @@ Process.prototype.send = function(command){
 };
 
 Process.prototype.start = function(){
-	// TODO implement
-	var startUrl = '/api/processes/'+this.pid+'/';
+	var startUrl = '/api/processes/'+this.pid;
 	$.ajax({
 		method: "PUT",
 		url: startUrl,
@@ -38,8 +37,7 @@ Process.prototype.start = function(){
 };
 
 Process.prototype.stop = function(){
-	// TODO implement
-	var stopUrl = '/api/processes/'+this.pid+'/';
+	var stopUrl = '/api/processes/'+this.pid;
 	$.ajax({
 		method: "PUT",
 		url: stopUrl,
