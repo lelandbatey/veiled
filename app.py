@@ -91,6 +91,21 @@ def show_process_status_after_idx(pid, after_idx, process):
     ret_val['output'], ret_val['last_index'] = process.read(after_idx)
     return make_json_response(ret_val)
 
+@APP.route('/api/processes/<int:pid>', methods=['POST'])
+@validate_pid
+def send_to_process(pid, process):
+    """Sends a given command to a process."""
+    parser = reqparse.RequestParser()
+    parser.add_argument('command', required=True,
+                        help='Command to be sent to the process')
+    args = parser.parse_args()
+
+    if not process.isalive():
+        return "process is not running", 500
+    else:
+        process.send(args.command)
+        return "success"
+
 
 @APP.route('/api/processes/<int:pid>', methods=['PUT'])
 @validate_pid
