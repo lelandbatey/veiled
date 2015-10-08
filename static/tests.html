@@ -1,0 +1,24 @@
+<!DOCTYPE>
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="/static/css/console.css">
+  <link rel="stylesheet" href="//code.jquery.com/qunit/qunit-1.19.0.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+  <script src="//code.jquery.com/qunit/qunit-1.19.0.js"></script>
+
+  <script type="text/javascript">
+// To prevent Qunit from mis-behaving, manually disable it here. Later, when
+// our tests are defined, we manually run the Qunit tests.
+window.addEventListener("load", function onLoad() {
+    QUnit.config.autostart = false;
+    window.removeEventListener("load", onLoad, true);
+}, true);
+  </script>
+
+  <script data-main="tests" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.20/require.js"></script>
+</head>
+<body>
+  <div id='qunit'></div>
+</body>
+
+</html>
