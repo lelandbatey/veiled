@@ -26,6 +26,7 @@ class ProcessCollection(object):
         while (pid == None) or (pid in self.processes.keys()):
             pid = self.pid_selector()
         self.processes[pid] = process
+        return pid
 
     def shutdown_all(self):
         """Close all processes."""

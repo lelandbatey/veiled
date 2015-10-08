@@ -25,13 +25,14 @@ def validate_pid(func):
     __name__ and __doc__ attributes of the wrapping function. Info here:
         https://docs.python.org/2/library/functools.html#functools.wraps"""
     @wraps(func)
-    def validator(*args):
+    def validator(*args, **kwargs):
         """Validates the pid"""
-        pid = args[0]
+        print(jsonpickle.encode(kwargs, unpicklable=False))
+        pid = kwargs['pid']
         if not pid in PROC_COL:
             return "No process with given pid", 400
         process = PROC_COL[pid]
-        args.append(process)
+        kwargs['process'] = process
         return func(*args)
     return validator
 
@@ -63,8 +64,8 @@ def create_process():
     parser.add_argument('command_path', required=True,
                         help='path to an executable on the system to be run.')
     args = parser.parse_args()
-    PROC_COL.new_process(args.command_path)
-    return "Process started with command_path: '{}'".format(args.command_path)
+    pid = PROC_COL.new_process(args.command_path)
+    return make_json_response({'pid': pid, 'command_path': args.command_path})
 
 
 @APP.route('/api/processes', methods=['DELETE'])
@@ -129,6 +130,7 @@ def toggle_process(pid, process):
 
 
 
+APP.debug = True
 if __name__ == '__main__':
     APP.debug = True
     APP.run(host='0.0.0.0')
