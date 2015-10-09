@@ -9,7 +9,8 @@ function Termview(div){
 	this.term = new Terminal({
 		cols: 100,
 		rows: 30,
-		screenKeys: false
+		screenKeys: false,
+		geometry: [100, 30]
 	});
 	this.term.on('data', (data) => {
 		this._inputBuffer += data;

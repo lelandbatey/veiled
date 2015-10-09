@@ -25,3 +25,7 @@ textarea{
 .terminal {
     font-family: Monaco, Menlo, Consolas, 'Courier New', monospace;
 }
+.terminal-cursor {
+    color: #000;
+    background: #f0f0f0;
+}
