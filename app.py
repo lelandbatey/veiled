@@ -27,13 +27,12 @@ def validate_pid(func):
     @wraps(func)
     def validator(*args, **kwargs):
         """Validates the pid"""
-        print(jsonpickle.encode(kwargs, unpicklable=False))
         pid = kwargs['pid']
         if not pid in PROC_COL:
             return "No process with given pid", 400
         process = PROC_COL[pid]
         kwargs['process'] = process
-        return func(*args)
+        return func(*args, **kwargs)
     return validator
 
 
@@ -102,8 +101,9 @@ def send_to_process(pid, process):
     args = parser.parse_args()
 
     if not process.isalive():
-        return "process is not running", 500
+        return "process is not running", 400
     else:
+        print(args.command)
         process.send(args.command)
         return "success"
 
@@ -119,8 +119,12 @@ def toggle_process(pid, process):
     ret_val = ""
 
     if args.action == 'start':
+        if process.isalive():
+            return "Process already running, cannot start", 400
         process.start()
     elif args.action == 'stop':
+        if not process.isalive():
+            return "Process not running, cannot stop", 400
         process.stop()
     else:
         return "Action was neither 'start' nor 'stop'", 400

@@ -26,7 +26,7 @@ class ProcessControl(object):
             self.cwd = "/".join(self.command_path.split("/")[:-1])
         else:
             self.cwd = os.getcwd()
-        self.read_queue = deque(maxlen=150)
+        self.read_queue = deque(maxlen=15000)
         self.read_thread = None
         self.process = None
 
@@ -59,8 +59,10 @@ class ProcessControl(object):
         """Perpetually reads output of process and places into the read_queue.
         Intended to be run in a separate thread."""
         read_id = long(0)
+        def reader():
+            return self.process.read(1)
         try:
-            for line in iter(self.process.readline, b''):
+            for line in iter(reader, b''):
                 self.read_queue.append((read_id, line))
                 read_id += 1
         except Exception:
@@ -83,6 +85,10 @@ class ProcessControl(object):
         first_id = self.read_queue[0][0]
         last_id = self.read_queue[-1][0]
         decklen = len(self.read_queue)
+        print(after_idx)
+        print(last_id)
+        print(decklen)
+        print()
 
         if after_idx == None:
             return join_chunks(islice(self.read_queue, decklen)), last_id
@@ -92,7 +98,10 @@ class ProcessControl(object):
         elif after_idx >= last_id:
             return '', last_id
         else:
-            mid_id = after_idx - first_id
+            # Add one since `islice` is inclusive, not exclusive
+            mid_id = after_idx - first_id + 1
+            if mid_id == decklen:
+                return '', last_id
             contents = join_chunks(islice(self.read_queue, mid_id, decklen))
             return contents, last_id
 
