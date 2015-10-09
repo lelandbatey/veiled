@@ -4,7 +4,8 @@ define('Process', ['jquery'], function($){
 function Process(commandPath, pid){
 	this.pid = +pid;
 	this.commandPath = commandPath;
-	this.afterIdx = 0;
+	this.lastIndex = 0;
+	this.updateIndex = 0;
 	this._isalive = false;
 	this.output = "";
 	this.termview = null;
@@ -57,13 +58,13 @@ Process.prototype.isalive = function(){
 Process.prototype._read = function(){
 	var _this = this;
 	return new Promise((resolve, reject) => {
-		var readUrl = '/api/processes/'+_this.pid+'/'+_this.afterIdx;
+		var readUrl = '/api/processes/'+_this.pid+'/'+_this.lastIndex;
 		$.get(readUrl).then((data) => {
-			var idx = +data['after_idx'];
+			var idx = +data['last_index'];
 			_this._isalive = data['isalive']
-			if (idx > _this.afterIdx){
+			if (idx > _this.lastIndex){
 				_this.output = _this.output + data['output'];
-				_this.afterIdx = idx;
+				_this.lastIndex = idx;
 			}
 			resolve(data);
 		});
@@ -73,21 +74,26 @@ Process.prototype._read = function(){
 Process.prototype.set_active = function(termview){
 	this.termview = termview;
 	this.termview.pid = this.pid;
+	this.termview.process = this;
+	var _this1 = this;
 	function poll(){
 		setTimeout(() => {
 			// If some other Process object takes control of our terminal view,
 			// halt polling.
-			if (this.termview.pid !== this.pid){
+			if (_this1.termview.pid !== _this1.pid){
 				return;
 			}
-			this._read().then((idx) => {
-				if (idx > this.afterIdx){
-					this.termview.update(this.output);
+			_this1._read().then((data) => {
+				if (data['last_index'] > _this1.updateIndex){
+					_this1.termview.update(data['output']);
+					_this1.updateIndex = data['last_index'];
 				}
 			});
+			_this1.send(_this1.termview.inputBuffer());
 			poll();
-		}, 2000);
+		}, 100);
 	}
+	poll();
 };
 
 Process.prototype.register_new_process = function(commandPath){

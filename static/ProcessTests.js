@@ -7,7 +7,7 @@ Qunit.test("Test Process constructor", (assert) => {
 	var proc = new Process(cmd, pid);
 	assert.equal(proc.pid, pid);
 	assert.equal(proc.commandPath, cmd);
-	assert.equal(proc.afterIdx, 0);
+	assert.equal(proc.lastIndex, 0);
 	assert.equal(proc.output, "");
 	assert.equal(proc.termview, null);
 });
@@ -20,7 +20,7 @@ Qunit.test("Test Process `_read` method", (assert) => {
 	var proc = new Process(cmd, pid);
 
 	var response = {
-		'after_idx': 1,
+		'last_index': 1,
 		'output': 'zeroth\n',
 		'isalive': true
 	};
@@ -33,9 +33,9 @@ Qunit.test("Test Process `_read` method", (assert) => {
 		console.log(response, data);
 		assert.equal(response.isalive, data.isalive);
 		assert.equal(response.output, data.output);
-		assert.equal(response.after_idx, data.after_idx);
+		assert.equal(response.last_index, data.last_index);
 		assert.equal(response.output, proc.output)
-		assert.equal(response.after_idx, proc.afterIdx)
+		assert.equal(response.last_index, proc.lastIndex)
 		done1();
 	});
 });
@@ -48,7 +48,7 @@ Qunit.test("Test Process `read` method", (assert) => {
 	var proc = new Process(cmd, pid);
 
 	var response = {
-		'after_idx': 1,
+		'last_index': 1,
 		'output': 'zeroth\n',
 		'isalive': true
 	};
@@ -60,7 +60,7 @@ Qunit.test("Test Process `read` method", (assert) => {
 	proc.read().then(function(output){
 		assert.equal(response.isalive, proc._isalive);
 		assert.equal(response.output, proc.output);
-		assert.equal(response.after_idx, proc.afterIdx)
+		assert.equal(response.last_index, proc.lastIndex)
 		done1();
 	});
 });
@@ -126,7 +126,7 @@ Qunit.test("Test Process `register_new_process` method", (assert) => {
 	Process.prototype.register_new_process(cmd).then((proc) => {
 		assert.equal(proc.pid, pid);
 		assert.equal(proc.commandPath, cmd);
-		assert.equal(proc.afterIdx, 0);
+		assert.equal(proc.lastIndex, 0);
 		assert.equal(proc.output, "");
 		assert.equal(proc.termview, null);
 		done1();
